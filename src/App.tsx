@@ -305,16 +305,19 @@ export default function App() {
       if (isSupabaseConfigured && supabase) {
         try {
           const [agendasRes, articlesRes, archivesRes, teamRes] = await Promise.all([
-            supabase.from('punel_agenda').select('*').order('date', { ascending: true }),
-            supabase.from('punel_articles').select('*').order('createdAt', { ascending: false }),
-            supabase.from('punel_archives').select('*').order('createdAt', { ascending: false }),
+            supabase.from('punel_agenda').select('*'),
+            supabase.from('punel_articles').select('*'),
+            supabase.from('punel_archives').select('*'),
             supabase.from('punel_team').select('*')
           ]);
 
           const isDemo = (title?: string) => title ? DEMO_TITLES.some(d => title.toLowerCase().includes(d.toLowerCase())) : false;
 
           if (agendasRes.data) {
-            const cleanAgendas = agendasRes.data.filter(item => !isDemo(item.title));
+            const cleanAgendas = agendasRes.data
+              .filter(item => !isDemo(item.title))
+              .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
             setAgendas(cleanAgendas.map(item => ({
               id: item.id,
               slug: slugify(item.title),
@@ -331,28 +334,44 @@ export default function App() {
                 { time: `${item.time || '15:00'} WIB`, activity: 'Pembukaan & Registrasi Hadir' },
                 { time: 'Sesi Lanjutan', activity: 'Pelaksanaan Kegiatan & Diskusi' }
               ],
-              image: item.posterUrl || item.posterurl || 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800',
+              image: item.posterUrl || item.posterurl || item.poster_url || 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800',
               isOpenRegistration: true
             })));
           }
 
           if (articlesRes.data) {
-            const cleanArticles = articlesRes.data.filter(item => !isDemo(item.title));
+            const cleanArticles = articlesRes.data
+              .filter(item => !isDemo(item.title))
+              .sort((a, b) => {
+                const timeA = new Date(a.createdAt || a.created_at || a.createdat || 0).getTime();
+                const timeB = new Date(b.createdAt || b.created_at || b.createdat || 0).getTime();
+                return timeB - timeA;
+              });
+
             setArticles(cleanArticles.map(item => ({
               id: item.id,
               slug: slugify(item.title),
               title: item.title,
               author: item.author || 'Punel Team',
-              date: (item.createdAt || item.createdat) ? new Date(item.createdAt || item.createdat).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+              date: (item.createdAt || item.created_at || item.createdat) 
+                ? new Date(item.createdAt || item.created_at || item.createdat).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) 
+                : '',
               category: item.category || 'Catatan Budaya',
               summary: item.summary || '',
               content: item.content || '',
-              image: item.imageUrl || item.imageurl || 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800'
+              image: item.imageUrl || item.imageurl || item.image_url || 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800'
             })));
           }
 
           if (archivesRes.data) {
-            const cleanArchives = archivesRes.data.filter(item => !isDemo(item.title));
+            const cleanArchives = archivesRes.data
+              .filter(item => !isDemo(item.title))
+              .sort((a, b) => {
+                const timeA = new Date(a.createdAt || a.created_at || a.createdat || 0).getTime();
+                const timeB = new Date(b.createdAt || b.created_at || b.createdat || 0).getTime();
+                return timeB - timeA;
+              });
+
             setArchives(cleanArchives.map(item => ({
               id: item.id,
               title: item.title,
@@ -360,25 +379,26 @@ export default function App() {
               year: item.year || '2026',
               category: item.category || 'Arsip Digital',
               pages: item.pages || 'Dokumen PDF',
-              fileSize: item.fileSize || item.filesize || 'Unduh PDF',
+              fileSize: item.fileSize || item.filesize || item.file_size || 'Unduh PDF',
               description: item.description || '',
-              coverUrl: item.coverUrl || item.coverurl || 'https://images.unsplash.com/photo-1544256718-3b610a088d43?auto=format&fit=crop&q=80&w=800',
-              pdfUrl: item.pdfUrl || item.pdfurl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-              allowDownload: item.allowDownload !== false && item.allowdownload !== false
+              coverUrl: item.coverUrl || item.coverurl || item.cover_url || 'https://images.unsplash.com/photo-1544256718-3b610a088d43?auto=format&fit=crop&q=80&w=800',
+              pdfUrl: item.pdfUrl || item.pdfurl || item.pdf_url || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+              allowDownload: item.allowDownload !== false && item.allowdownload !== false && item.allow_download !== false
             })));
           }
 
           if (teamRes.data && teamRes.data.length > 0) {
-            const hasNewTeam = teamRes.data.some(item => 
-              (item.name && (item.name.includes('Izzat') || item.name.includes('Sofyan') || item.name.includes('Romi')))
+            const sortedTeam = [...teamRes.data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+            const hasNewTeam = sortedTeam.some(item => 
+              (item.name && (item.name.includes('Izzat') || item.name.includes('Sofyan') || item.name.includes('Romi') || item.name.includes('Fahmi')))
             );
             if (hasNewTeam) {
-              setTeam(teamRes.data.map(item => ({
+              setTeam(sortedTeam.map(item => ({
                 id: item.id,
                 name: item.name,
                 role: item.role || 'Anggota Kolektif',
                 bio: item.description || '',
-                image: item.photoUrl || item.photourl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400'
+                image: item.photoUrl || item.photourl || item.photo_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400'
               })));
             } else {
               setTeam(MOCK_TEAM);
