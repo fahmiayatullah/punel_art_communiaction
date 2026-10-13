@@ -1,5 +1,6 @@
 -- ==============================================================================
--- SKEMA DATABASE LENGKAP SUPABASE: PUNEL ART COMMUNICATION
+-- SKEMA DATABASE LENGKAP & IDEMPOTEN: PUNEL ART COMMUNICATION
+-- Aman dijalankan berulang kali tanpa error duplikasi policy atau tabel.
 -- Jalankan skrip ini langsung di tab "SQL Editor" pada dashboard Supabase Anda.
 -- ==============================================================================
 
@@ -54,6 +55,8 @@ CREATE TABLE IF NOT EXISTS public.punel_archives (
     allowDownload BOOLEAN DEFAULT TRUE,
     createdAt TIMESTAMPTZ DEFAULT NOW()
 );
+-- Pastikan kolom fileSize ada jika tabel sudah pernah dibuat sebelumnya
+ALTER TABLE public.punel_archives ADD COLUMN IF NOT EXISTS fileSize TEXT DEFAULT '4.0 MB';
 
 -- 5. TABEL PROFIL TIM & KURATOR
 CREATE TABLE IF NOT EXISTS public.punel_team (
@@ -79,6 +82,7 @@ CREATE TABLE IF NOT EXISTS public.punel_registrations (
 
 -- ==============================================================================
 -- KEAMANAN: ROW LEVEL SECURITY (RLS) & KEBIJAKAN AKSES
+-- Menggunakan DROP POLICY IF EXISTS agar aman dijalankan berulang kali
 -- ==============================================================================
 
 ALTER TABLE public.punel_settings ENABLE ROW LEVEL SECURITY;
@@ -89,44 +93,56 @@ ALTER TABLE public.punel_team ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.punel_registrations ENABLE ROW LEVEL SECURITY;
 
 -- 1. Kebijakan punel_settings
+DROP POLICY IF EXISTS "Publik dapat membaca pengaturan" ON public.punel_settings;
 CREATE POLICY "Publik dapat membaca pengaturan" ON public.punel_settings
     FOR SELECT TO anon, authenticated USING (true);
 
+DROP POLICY IF EXISTS "Admin dapat mengelola pengaturan" ON public.punel_settings;
 CREATE POLICY "Admin dapat mengelola pengaturan" ON public.punel_settings
     FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 2. Kebijakan punel_agenda
+DROP POLICY IF EXISTS "Publik dapat melihat agenda" ON public.punel_agenda;
 CREATE POLICY "Publik dapat melihat agenda" ON public.punel_agenda
     FOR SELECT TO anon, authenticated USING (true);
 
+DROP POLICY IF EXISTS "Admin dapat mengelola agenda" ON public.punel_agenda;
 CREATE POLICY "Admin dapat mengelola agenda" ON public.punel_agenda
     FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 3. Kebijakan punel_articles
+DROP POLICY IF EXISTS "Publik dapat membaca artikel" ON public.punel_articles;
 CREATE POLICY "Publik dapat membaca artikel" ON public.punel_articles
     FOR SELECT TO anon, authenticated USING (true);
 
+DROP POLICY IF EXISTS "Admin dapat mengelola artikel" ON public.punel_articles;
 CREATE POLICY "Admin dapat mengelola artikel" ON public.punel_articles
     FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 4. Kebijakan punel_archives (PDF Documents)
+DROP POLICY IF EXISTS "Publik dapat melihat & membaca arsip PDF" ON public.punel_archives;
 CREATE POLICY "Publik dapat melihat & membaca arsip PDF" ON public.punel_archives
     FOR SELECT TO anon, authenticated USING (true);
 
+DROP POLICY IF EXISTS "Admin dapat mengelola arsip PDF" ON public.punel_archives;
 CREATE POLICY "Admin dapat mengelola arsip PDF" ON public.punel_archives
     FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 5. Kebijakan punel_team
+DROP POLICY IF EXISTS "Publik dapat melihat tim" ON public.punel_team;
 CREATE POLICY "Publik dapat melihat tim" ON public.punel_team
     FOR SELECT TO anon, authenticated USING (true);
 
+DROP POLICY IF EXISTS "Admin dapat mengelola data tim" ON public.punel_team;
 CREATE POLICY "Admin dapat mengelola data tim" ON public.punel_team
     FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 6. Kebijakan punel_registrations
+DROP POLICY IF EXISTS "Publik dapat mendaftarkan diri ke agenda" ON public.punel_registrations;
 CREATE POLICY "Publik dapat mendaftarkan diri ke agenda" ON public.punel_registrations
     FOR INSERT TO anon, authenticated WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Admin dapat melihat data pendaftar" ON public.punel_registrations;
 CREATE POLICY "Admin dapat melihat data pendaftar" ON public.punel_registrations
     FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
@@ -144,11 +160,13 @@ VALUES ('images', 'images', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Kebijakan Akses Storage: Publik dapat membaca file
+DROP POLICY IF EXISTS "Akses publik untuk membaca dokumen arsip PDF" ON storage.objects;
 CREATE POLICY "Akses publik untuk membaca dokumen arsip PDF" 
 ON storage.objects FOR SELECT TO anon, authenticated 
 USING (bucket_id = 'archives' OR bucket_id = 'images');
 
 -- Kebijakan Akses Storage: Pengguna terautentikasi dapat mengunggah file
+DROP POLICY IF EXISTS "Admin dapat mengunggah dokumen arsip PDF" ON storage.objects;
 CREATE POLICY "Admin dapat mengunggah dokumen arsip PDF" 
 ON storage.objects FOR INSERT TO authenticated 
 WITH CHECK (bucket_id = 'archives' OR bucket_id = 'images');
