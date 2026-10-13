@@ -206,7 +206,9 @@ ON CONFLICT DO NOTHING;
 -- Data Profil Tim Penggerak
 INSERT INTO public.punel_team (name, role, description, photoUrl)
 VALUES 
-('Budi Santoso', 'Inisiator & Peneliti Sejarah', 'Meneliti dinamika sejarah maritim, folklore nelayan, dan pendokumentasian narasi lisan kawasan pesisir Banyuwangi.', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400'),
-('Siti Aminah', 'Kurator Seni & Arsip Visual', 'Mengelola laboratorium arsip digital, lokakarya edukasi anak muda, dan kurasi pameran seni komunitas.', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=400'),
-('Fahmi Ayatollah', 'Koordinator Publikasi & Media', 'Merancang publikasi zine independen, arsip web interaktif, dan komunikasi jaringan kebudayaan pesisir.', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400')
+('Izzat Ramsi', 'Inisiator & Teater', 'Mengembangkan pendekatan dramaturgi dan seni pertunjukan teater rakyat yang berakar pada narasi bahari Muncar.', 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=400'),
+('Sofyan Maulana', 'Advokasi', 'Fokus pada pendampingan hak nelayan tradisional, advokasi ruang hidup pesisir, dan perlindungan ekologi laut.', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400'),
+('Romi Alwi Zain', 'Musik', 'Eksplorasi komposisi musik bahari, pengarsipan lanskap bunyi pesisir, dan penciptaan karya berbasis ritus lokal.', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400'),
+('Fahmi Ayatullah', 'Jurnalis Independen', 'Merancang liputan etnografi pesisir, publikasi zine independen, dan pengarsipan narasi lisan masyarakat Muncar.', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400')
 ON CONFLICT DO NOTHING;
+

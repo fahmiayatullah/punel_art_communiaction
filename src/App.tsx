@@ -197,23 +197,30 @@ const MOCK_ARCHIVES: ArchiveDocument[] = [
 const MOCK_TEAM: TeamMember[] = [
   {
     id: '1',
-    name: 'Budi Santoso',
-    role: 'Inisiator & Peneliti Sejarah',
-    bio: 'Meneliti dinamika sejarah maritim, folklore nelayan, dan pendokumentasian narasi lisan kawasan pesisir Banyuwangi.',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400'
+    name: 'Izzat Ramsi',
+    role: 'Inisiator & Teater',
+    bio: 'Mengembangkan pendekatan dramaturgi dan seni pertunjukan teater rakyat yang berakar pada narasi bahari Muncar.',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=400'
   },
   {
     id: '2',
-    name: 'Siti Aminah',
-    role: 'Kurator Seni & Arsip Visual',
-    bio: 'Mengelola laboratorium arsip digital, lokakarya edukasi anak muda, dan kurasi pameran seni komunitas.',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=400'
+    name: 'Sofyan Maulana',
+    role: 'Advokasi',
+    bio: 'Fokus pada pendampingan hak nelayan tradisional, advokasi ruang hidup pesisir, dan perlindungan ekologi laut.',
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400'
   },
   {
     id: '3',
-    name: 'Fahmi Ayatollah',
-    role: 'Koordinator Publikasi & Media',
-    bio: 'Merancang publikasi zine independen, arsip web interaktif, dan komunikasi jaringan kebudayaan pesisir.',
+    name: 'Romi Alwi Zain',
+    role: 'Musik',
+    bio: 'Eksplorasi komposisi musik bahari, pengarsipan lanskap bunyi pesisir, dan penciptaan karya berbasis ritus lokal.',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400'
+  },
+  {
+    id: '4',
+    name: 'Fahmi Ayatullah',
+    role: 'Jurnalis Independen',
+    bio: 'Merancang liputan etnografi pesisir, publikasi zine independen, dan pengarsipan narasi lisan masyarakat Muncar.',
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400'
   }
 ];
@@ -427,7 +434,7 @@ export default function App() {
                 { time: `${item.time || '15:00'} WIB`, activity: 'Pembukaan & Registrasi Hadir' },
                 { time: 'Sesi Lanjutan', activity: 'Pelaksanaan Kegiatan & Diskusi' }
               ],
-              image: item.posterUrl || 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800',
+              image: item.posterUrl || item.posterurl || 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800',
               isOpenRegistration: true
             })));
           }
@@ -438,11 +445,11 @@ export default function App() {
               slug: slugify(item.title),
               title: item.title,
               author: item.author || 'Punel Team',
-              date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+              date: (item.createdAt || item.createdat) ? new Date(item.createdAt || item.createdat).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
               category: item.category || 'Catatan Budaya',
               summary: item.summary || '',
               content: item.content || '',
-              image: item.imageUrl || 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800'
+              image: item.imageUrl || item.imageurl || 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800'
             })));
           }
 
@@ -454,22 +461,29 @@ export default function App() {
               year: item.year || '2026',
               category: item.category || 'Arsip Digital',
               pages: item.pages || 'Dokumen PDF',
-              fileSize: item.fileSize || 'Unduh PDF',
+              fileSize: item.fileSize || item.filesize || 'Unduh PDF',
               description: item.description || '',
-              coverUrl: item.coverUrl || 'https://images.unsplash.com/photo-1544256718-3b610a088d43?auto=format&fit=crop&q=80&w=800',
-              pdfUrl: item.pdfUrl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-              allowDownload: item.allowDownload !== false
+              coverUrl: item.coverUrl || item.coverurl || 'https://images.unsplash.com/photo-1544256718-3b610a088d43?auto=format&fit=crop&q=80&w=800',
+              pdfUrl: item.pdfUrl || item.pdfurl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+              allowDownload: item.allowDownload !== false && item.allowdownload !== false
             })));
           }
 
           if (teamRes.data && teamRes.data.length > 0) {
-            setTeam(teamRes.data.map(item => ({
-              id: item.id,
-              name: item.name,
-              role: item.role || 'Anggota Kolektif',
-              bio: item.description || '',
-              image: item.photoUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400'
-            })));
+            const hasNewTeam = teamRes.data.some(item => 
+              (item.name && (item.name.includes('Izzat') || item.name.includes('Sofyan') || item.name.includes('Romi')))
+            );
+            if (hasNewTeam) {
+              setTeam(teamRes.data.map(item => ({
+                id: item.id,
+                name: item.name,
+                role: item.role || 'Anggota Kolektif',
+                bio: item.description || '',
+                image: item.photoUrl || item.photourl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400'
+              })));
+            } else {
+              setTeam(MOCK_TEAM);
+            }
           }
         } catch (err) {
           console.warn('Gagal memuat data dari Supabase, beralih ke Mock Data:', err);
@@ -1591,7 +1605,7 @@ export default function App() {
                 subtitle="Penggerak kolektif yang berdedikasi merawat ruang temu dan arsip kebudayaan pesisir." 
                 align="center"
               />
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                 {team.map((m) => (
                   <div key={m.id} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center hover:shadow-lg transition-all duration-300">
                     <div className="w-28 h-28 mx-auto rounded-full overflow-hidden mb-5 border-4 border-sky-50 shadow-inner">
@@ -1860,7 +1874,7 @@ export default function App() {
               title="Struktur & Penggerak Kolektif" 
               subtitle="Individu yang mendedikasikan waktu dan gagasan untuk keberlanjutan program Punel Art Communication." 
             />
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
               {team.map((member) => (
                 <Card key={member.id} className="text-center group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                   <div className="w-32 h-32 mx-auto rounded-full overflow-hidden mb-6 border-4 border-slate-50 shadow-md">
