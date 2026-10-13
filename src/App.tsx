@@ -1,26 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Menu, X, ArrowRight, Calendar, MapPin, Clock, 
-  Heart, ArrowLeft, Download, FileText, Eye, 
-  BookOpen, ExternalLink, Search
+  Heart, ArrowLeft, Download, FileText, Eye, EyeOff,
+  BookOpen, ExternalLink, Search, Share2, Copy, Check,
+  LogOut, Lock, ShieldCheck, AlertCircle, Loader2
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 // --- TIPE DATA TYPESCRIPT ---
 export interface Agenda {
   id: string;
+  slug?: string;
   title: string;
   date: string;
   time: string;
   location: string;
-  status: string;
+  status: string; // 'upcoming' | 'ongoing' | 'completed'
   category: string;
   description: string;
+  longDescription?: string;
+  organizer?: string;
+  schedule?: { time: string; activity: string }[];
   image: string;
+  isOpenRegistration?: boolean;
 }
 
 export interface Article {
   id: string;
+  slug?: string;
   title: string;
   author: string;
   date: string;
@@ -52,35 +59,65 @@ export interface TeamMember {
   image: string;
 }
 
+// --- HELPER UNTUK URL SLUG ---
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 // --- MOCK DATA FALLBACK (EDITORIAL MARITIM MUNCAR) ---
 const MOCK_AGENDAS: Agenda[] = [
   {
     id: '1',
+    slug: 'diskusi-pesisir-menggali-ingatan-laut',
     title: 'Diskusi Pesisir: Menggali Ingatan Laut',
     date: '10 Nov 2026',
     time: '15:00',
-    location: 'Sekretariat Muncar',
+    location: 'Sekretariat Punel, Muncar, Banyuwangi',
     status: 'upcoming',
     category: 'Diskusi',
-    description: 'Diskusi rutin membedah arsip kebudayaan bahari masyarakat Muncar dalam menghadapi perubahan iklim dan modernisasi alat tangkap.',
-    image: 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800'
+    organizer: 'Punel Art Communication & Paguyuban Nelayan Selat Bali',
+    description: 'Diskusi rutin membedah arsip kebudayaan bahari masyarakat Muncar dalam menghadapi perubahan iklim, pergeseran musim tangkap, dan modernisasi alat tangkap perahu tradisional.',
+    longDescription: `Sejak berabad-abad lampau, masyarakat Muncar menggantungkan hidup pada ritme Selat Bali. Tradisi lisan, penanggalan bintang (pranata mangsa laut), dan ritual laut menjadi pedoman navigasi para leluhur nelayan pesisir Banyuwangi. Namun, di tengah krisis iklim global dan ekspansi industri perikanan skala besar, pengetahuan lokal ini kian terdesak dan terancam punah.\n\nDalam sesi diskusi pesisir edisi kali ini, kami mengundang para sesepuh nelayan, peneliti maritim, serta generasi muda untuk duduk melingkar membedah kembali arsip lisan dan catatan sejarah perahu. Forum ini bertujuan menyusun rekomendasi bersama dalam merawat kelestarian ekologi pesisir serta memperkuat solidaritas antarkomunitas nelayan tradisional.`,
+    schedule: [
+      { time: '15:00 - 15:30 WIB', activity: 'Registrasi Hadir & Jamuan Kopi Pesisir' },
+      { time: '15:30 - 16:30 WIB', activity: 'Pemutaran Dokumentasi Audio-Visual Perahu Muncar' },
+      { time: '16:30 - 17:30 WIB', activity: 'Sesi Diskusi Terbuka bersama Peneliti & Tokoh Nelayan' },
+      { time: '17:30 - 17:45 WIB', activity: 'Penyusunan Butir Kesimpulan & Penutupan' }
+    ],
+    image: 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=1200',
+    isOpenRegistration: true
   },
   {
     id: '2',
+    slug: 'pameran-fotografi-wajah-gelombang-nelayan',
     title: 'Pameran Fotografi: Wajah & Gelombang Nelayan',
     date: '01 Des 2026',
     time: '09:00',
-    location: 'Galeri Kampung Pesisir',
+    location: 'Galeri Kampung Pesisir, Muncar',
     status: 'upcoming',
     category: 'Seni Rupa',
+    organizer: 'Divisi Seni Visual Punel Art Communication',
     description: 'Pameran visual mendokumentasikan keseharian, ritus keberangkatan, dan ketangguhan nelayan tradisional Selat Bali.',
-    image: 'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?auto=format&fit=crop&q=80&w=800'
+    longDescription: `Kamera bukan sekadar alat rekam visual, melainkan medium empati yang menangkap kerutan wajah nelayan yang terbakar matahari, kehangatan keluarga di tepian dermaga saat menyambut kepulangan perahu, serta perjuangan menembus ombak Selat Bali di tengah malam.\n\nPameran fotografi ini menampilkan 45 karya cetak analog dan digital yang dikumpulkan selama 6 bulan riset partisipatoris di tiga kampung pesisir Muncar. Melalui pameran ini, kami mengajak publik melihat lebih dekat denyut kehidupan manusia perahu di luar narasi statistik semata.`,
+    schedule: [
+      { time: '09:00 - 10:00 WIB', activity: 'Pembukaan Pameran & Sambutan Kurator' },
+      { time: '10:00 - 12:00 WIB', activity: 'Tur Kuratorial & Dialog Bersama Fotografer Komunitas' },
+      { time: '13:00 - 16:00 WIB', activity: 'Pameran Terbuka untuk Umum & Sesi Cetak Foto Langsung' }
+    ],
+    image: 'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?auto=format&fit=crop&q=80&w=1200',
+    isOpenRegistration: true
   }
 ];
 
 const MOCK_ARTICLES: Article[] = [
   {
     id: '1',
+    slug: 'jejak-perahu-cungkring-di-pesisir-muncar',
     title: 'Jejak Perahu Cungkring di Pesisir Muncar',
     author: 'Tim Riset Punel',
     date: '01 Okt 2026',
@@ -91,6 +128,7 @@ const MOCK_ARTICLES: Article[] = [
   },
   {
     id: '2',
+    slug: 'merawat-larung-sesaji-antara-syukur-dan-ekologi',
     title: 'Merawat Larung Sesaji: Antara Syukur dan Ekologi',
     author: 'Siti Aminah',
     date: '08 Okt 2026',
@@ -190,19 +228,19 @@ const InstagramIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 );
 
 // --- KOMPONEN UI DASAR DESIGN SYSTEM MODERN ---
-
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'outline' | 'accent' | 'ghost';
+  variant?: 'primary' | 'outline' | 'accent' | 'ghost' | 'danger';
   children: React.ReactNode;
 }
 
 const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', className = '', ...props }) => {
-  const base = "px-6 py-3 rounded-full font-heading font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-95 cursor-pointer";
+  const base = "px-6 py-3 rounded-full font-heading font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
   const variants = {
     primary: "bg-sky-600 text-white hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-500/30",
     outline: "bg-white text-slate-800 border-2 border-slate-200 hover:border-sky-600 hover:text-sky-600 hover:shadow-md",
     accent: "bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/30",
-    ghost: "text-sky-600 hover:bg-sky-50"
+    ghost: "text-sky-600 hover:bg-sky-50",
+    danger: "bg-rose-600 text-white hover:bg-rose-700 hover:shadow-lg hover:shadow-rose-500/30"
   };
   return (
     <button className={`${base} ${variants[variant]} ${className}`} {...props}>
@@ -236,11 +274,12 @@ const Card = ({ children, className = '', onClick }: { children: React.ReactNode
   </div>
 );
 
-const Badge = ({ children, variant = 'sky' }: { children: React.ReactNode; variant?: 'sky' | 'orange' | 'slate' }) => {
+const Badge = ({ children, variant = 'sky' }: { children: React.ReactNode; variant?: 'sky' | 'orange' | 'slate' | 'emerald' }) => {
   const styles = {
     sky: 'bg-sky-50 text-sky-700 border border-sky-100',
     orange: 'bg-orange-50 text-orange-700 border border-orange-100',
-    slate: 'bg-slate-100 text-slate-700 border border-slate-200'
+    slate: 'bg-slate-100 text-slate-700 border border-slate-200',
+    emerald: 'bg-emerald-50 text-emerald-700 border border-emerald-100'
   };
   return (
     <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-heading font-bold uppercase tracking-wider ${styles[variant]}`}>
@@ -251,38 +290,117 @@ const Badge = ({ children, variant = 'sky' }: { children: React.ReactNode; varia
 
 // --- APLIKASI UTAMA PUNEL ART COMMUNICATION ---
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'agenda' | 'archives' | 'articles' | 'team' | 'admin'>('home');
+  // ROUTING STATE BERBASIS URL PATHNAME
+  const [currentPath, setCurrentPath] = useState<string>(() => {
+    return window.location.pathname || '/';
+  });
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Data State
+  // DATA STATE
   const [agendas, setAgendas] = useState<Agenda[]>(MOCK_AGENDAS);
   const [articles, setArticles] = useState<Article[]>(MOCK_ARTICLES);
   const [archives, setArchives] = useState<ArchiveDocument[]>(MOCK_ARCHIVES);
   const [team, setTeam] = useState<TeamMember[]>(MOCK_TEAM);
+  const [loadingData, setLoadingData] = useState<boolean>(true);
 
-  // Filter & Search State untuk Arsip Dokumen
+  // FILTER & SEARCH STATE
   const [archiveCategory, setArchiveCategory] = useState<string>('Semua');
   const [archiveSearch, setArchiveSearch] = useState<string>('');
 
-  // Modal State
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  // MODAL STATE
   const [selectedPdf, setSelectedPdf] = useState<ArchiveDocument | null>(null);
   const [registerItem, setRegisterItem] = useState<{ title: string; type: 'agenda'; price?: string | number } | null>(null);
   const [isSawerOpen, setIsSawerOpen] = useState(false);
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  // Form State Registrasi Pop-up
+  // REGISTRASI FORM STATE
   const [regForm, setRegForm] = useState({ name: '', phone: '', email: '', note: '' });
   const [regSubmitted, setRegSubmitted] = useState(false);
 
-  // Admin Dashboard State
-  const [adminType, setAdminType] = useState<'agenda' | 'archive' | 'article'>('archive');
+  // AUTENTIKASI ADMIN SUPABASE
+  const [session, setSession] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // ADMIN DASHBOARD FORM STATE
+  const [adminType, setAdminType] = useState<'archive' | 'agenda' | 'article'>('archive');
   const [adminFormData, setAdminFormData] = useState<any>({});
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
 
-  // 1. Fetching Data (Supabase dengan Mock Fallback)
+  // --- SISTEM NAVIGASI & SCROLL-TO-TOP TERPUSAT ---
+  const navigate = (path: string, options?: { replace?: boolean; hash?: string }) => {
+    setMobileMenuOpen(false);
+    if (options?.replace) {
+      window.history.replaceState({}, '', path);
+    } else {
+      window.history.pushState({}, '', path);
+    }
+    setCurrentPath(path);
+
+    // RESET SCROLL LANGSUNG KE ATAS (Y = 0)
+    setTimeout(() => {
+      if (options?.hash) {
+        const el = document.getElementById(options.hash.replace('#', ''));
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+      }
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 10);
+  };
+
+  // Browser Back / Forward Button Handling (PopState)
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname || '/');
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Guarantee Scroll to Top whenever currentPath changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [currentPath]);
+
+  // Check Supabase Auth Session
+  useEffect(() => {
+    if (isSupabaseConfigured && supabase) {
+      supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+        setSession(currentSession);
+        setAuthLoading(false);
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+        setSession(currentSession);
+        setAuthLoading(false);
+      });
+
+      return () => subscription.unsubscribe();
+    } else {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  // Fetching Data from Supabase with Fallback
   useEffect(() => {
     async function fetchData() {
+      setLoadingData(true);
       if (isSupabaseConfigured && supabase) {
         try {
           const [agendasRes, articlesRes, archivesRes, teamRes] = await Promise.all([
@@ -295,6 +413,7 @@ export default function App() {
           if (agendasRes.data && agendasRes.data.length > 0) {
             setAgendas(agendasRes.data.map(item => ({
               id: item.id,
+              slug: slugify(item.title),
               title: item.title,
               date: item.date || '',
               time: item.time || '',
@@ -302,13 +421,21 @@ export default function App() {
               status: item.status || 'upcoming',
               category: item.category || 'Umum',
               description: item.description || '',
-              image: item.posterUrl || 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800'
+              longDescription: item.description || '',
+              organizer: 'Punel Art Communication',
+              schedule: [
+                { time: `${item.time || '15:00'} WIB`, activity: 'Pembukaan & Registrasi Hadir' },
+                { time: 'Sesi Lanjutan', activity: 'Pelaksanaan Kegiatan & Diskusi' }
+              ],
+              image: item.posterUrl || 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800',
+              isOpenRegistration: true
             })));
           }
 
           if (articlesRes.data && articlesRes.data.length > 0) {
             setArticles(articlesRes.data.map(item => ({
               id: item.id,
+              slug: slugify(item.title),
               title: item.title,
               author: item.author || 'Punel Team',
               date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
@@ -348,11 +475,63 @@ export default function App() {
           console.warn('Gagal memuat data dari Supabase, beralih ke Mock Data:', err);
         }
       }
+      setLoadingData(false);
     }
     fetchData();
   }, []);
 
-  // Handler Download File PDF
+  // --- HANDLER AUTENTIKASI ADMIN ---
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    setIsLoggingIn(true);
+
+    if (!loginEmail || !loginPassword) {
+      setLoginError('Harap masukkan alamat email dan kata sandi.');
+      setIsLoggingIn(false);
+      return;
+    }
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: loginEmail,
+          password: loginPassword
+        });
+
+        if (error) {
+          if (error.message.toLowerCase().includes('invalid login credentials')) {
+            setLoginError('Email atau kata sandi tidak cocok. Silakan periksa kembali akun administrator Anda.');
+          } else {
+            setLoginError(error.message);
+          }
+        } else if (data.session) {
+          setSession(data.session);
+          setLoginEmail('');
+          setLoginPassword('');
+          navigate('/admin');
+        }
+      } catch (err: any) {
+        setLoginError(err.message || 'Terjadi kesalahan sistem saat mencoba masuk.');
+      }
+    } else {
+      // Mock Demo Auth jika kredensial .env Supabase belum dipasang
+      setTimeout(() => {
+        setLoginError('Koneksi Supabase belum terkonfigurasi. Pasang VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY pada file .env.');
+      }, 600);
+    }
+    setIsLoggingIn(false);
+  };
+
+  const handleLogout = async () => {
+    if (isSupabaseConfigured && supabase) {
+      await supabase.auth.signOut();
+    }
+    setSession(null);
+    navigate('/admin/login');
+  };
+
+  // --- HANDLER DOWNLOAD BERKAS PDF ---
   const handleDownload = (doc: ArchiveDocument) => {
     try {
       const link = document.createElement('a');
@@ -365,12 +544,21 @@ export default function App() {
 
       setDownloadNotice(`Sedang mengunduh "${doc.title}"...`);
       setTimeout(() => setDownloadNotice(null), 3500);
-    } catch (err) {
+    } catch {
       window.open(doc.pdfUrl, '_blank');
     }
   };
 
-  // Handler Kirim Registrasi ke WhatsApp & Simpan
+  // --- HANDLER SALIN TAUTAN (SHARE) ---
+  const handleCopyLink = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    }
+  };
+
+  // --- HANDLER REGISTRASI AGENDA POP-UP ---
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regForm.name || !regForm.phone) {
@@ -392,7 +580,7 @@ export default function App() {
       }
     }
 
-    const message = `Halo Punel Art Communication, saya ingin mendaftar untuk:\n\n*${registerItem?.title}* (Agenda Pesisir)\n\nNama: ${regForm.name}\nWhatsApp: ${regForm.phone}\nEmail: ${regForm.email || '-'}\nCatatan: ${regForm.note || '-'}`;
+    const message = `Halo Punel Art Communication, saya ingin mendaftar untuk:\n\n*${registerItem?.title}* (Agenda Pesisir Muncar)\n\nNama: ${regForm.name}\nWhatsApp: ${regForm.phone}\nEmail: ${regForm.email || '-'}\nCatatan: ${regForm.note || '-'}`;
     const whatsappUrl = `https://wa.me/6281234567890?text=${encodeURIComponent(message)}`;
     
     setRegSubmitted(true);
@@ -404,7 +592,7 @@ export default function App() {
     }, 1200);
   };
 
-  // Handler Submit Tambah Konten Admin
+  // --- HANDLER ADMIN TERBITKAN KONTEN ---
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminMessage(null);
@@ -418,6 +606,7 @@ export default function App() {
             year: adminFormData.year || new Date().getFullYear().toString(),
             category: adminFormData.category || 'Riset Etnografi',
             pages: adminFormData.pages || '30 Halaman',
+            fileSize: adminFormData.fileSize || '4.5 MB',
             description: adminFormData.description || '',
             coverUrl: adminFormData.coverUrl || 'https://images.unsplash.com/photo-1544256718-3b610a088d43?auto=format&fit=crop&q=80&w=800',
             pdfUrl: adminFormData.pdfUrl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
@@ -454,7 +643,6 @@ export default function App() {
         setAdminMessage(`Gagal menerbitkan ke Supabase: ${err.message}`);
       }
     } else {
-      // Mock Fallback
       if (adminType === 'archive') {
         const newDoc: ArchiveDocument = {
           id: String(Date.now()),
@@ -471,16 +659,44 @@ export default function App() {
         };
         setArchives(prev => [newDoc, ...prev]);
       } else if (adminType === 'agenda') {
-        setAgendas(prev => [{ ...adminFormData, id: String(Date.now()) }, ...prev]);
+        const newAg: Agenda = {
+          id: String(Date.now()),
+          slug: slugify(adminFormData.title || 'Agenda Baru'),
+          title: adminFormData.title || 'Agenda Baru',
+          date: adminFormData.date || 'Segera Hadir',
+          time: adminFormData.time || '15:00',
+          location: adminFormData.location || 'Muncar',
+          status: 'upcoming',
+          category: adminFormData.category || 'Diskusi',
+          description: adminFormData.description || '',
+          longDescription: adminFormData.description || '',
+          organizer: 'Punel Art Communication',
+          image: adminFormData.image || 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800',
+          isOpenRegistration: true
+        };
+        setAgendas(prev => [newAg, ...prev]);
       } else {
-        setArticles(prev => [{ ...adminFormData, id: String(Date.now()) }, ...prev]);
+        setArticles(prev => [{ ...adminFormData, id: String(Date.now()), slug: slugify(adminFormData.title || 'Artikel') }, ...prev]);
       }
       setAdminMessage('Berhasil ditambahkan ke daftar pratinjau lokal (Mock Mode)!');
     }
     setAdminFormData({});
   };
 
-  // Filtered Archives
+  // --- PARSER RUTE DINAMIS DARI URL PATHNAME ---
+  const isAgendaDetail = currentPath.startsWith('/agenda/') && currentPath !== '/agenda/';
+  const agendaParam = isAgendaDetail ? currentPath.replace('/agenda/', '').split('/')[0] : null;
+  const currentAgenda = isAgendaDetail 
+    ? agendas.find(a => a.id === agendaParam || a.slug === agendaParam || slugify(a.title) === agendaParam)
+    : null;
+
+  const isArticleDetail = currentPath.startsWith('/artikel/') && currentPath !== '/artikel/';
+  const articleParam = isArticleDetail ? currentPath.replace('/artikel/', '').split('/')[0] : null;
+  const currentArticle = isArticleDetail
+    ? articles.find(a => a.id === articleParam || a.slug === articleParam || slugify(a.title) === articleParam)
+    : null;
+
+  // Filter Arsip Dokumen PDF
   const filteredArchives = archives.filter(item => {
     const matchCat = archiveCategory === 'Semua' || item.category.toLowerCase().includes(archiveCategory.toLowerCase());
     const matchSearch = archiveSearch === '' || 
@@ -492,7 +708,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-orange-500 selection:text-white flex flex-col">
-      {/* --- NOTIFIKASI TOAST DOWNLOAD --- */}
+      {/* NOTIFIKASI TOAST DOWNLOAD */}
       {downloadNotice && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-800 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
           <Download className="w-5 h-5 text-orange-400 animate-bounce" />
@@ -504,7 +720,7 @@ export default function App() {
       <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div 
-            onClick={() => { setActiveTab('home'); setSelectedArticle(null); setSelectedPdf(null); }} 
+            onClick={() => navigate('/')} 
             className="flex items-center gap-3 cursor-pointer group"
           >
             <div className="w-11 h-11 rounded-2xl bg-sky-600 flex items-center justify-center text-white font-heading font-extrabold text-xl shadow-md group-hover:bg-sky-700 transition-colors">
@@ -522,41 +738,42 @@ export default function App() {
 
           <div className="hidden md:flex items-center gap-8 font-heading text-sm font-semibold text-slate-600">
             <button 
-              onClick={() => { setActiveTab('home'); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className={`transition-colors py-1 ${activeTab === 'home' && !selectedArticle ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
+              onClick={() => navigate('/')} 
+              className={`transition-colors py-1 cursor-pointer ${currentPath === '/' ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
             >
               Beranda
             </button>
             <button 
-              onClick={() => { setActiveTab('agenda'); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className={`transition-colors py-1 ${activeTab === 'agenda' ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
+              onClick={() => navigate('/agenda')} 
+              className={`transition-colors py-1 cursor-pointer ${(currentPath === '/agenda' || isAgendaDetail) ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
             >
               Agenda
             </button>
             <button 
-              onClick={() => { setActiveTab('archives'); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className={`transition-colors py-1 flex items-center gap-1.5 ${activeTab === 'archives' ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
+              onClick={() => navigate('/arsip')} 
+              className={`transition-colors py-1 flex items-center gap-1.5 cursor-pointer ${currentPath === '/arsip' ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
             >
               <FileText className="w-4 h-4" />
               <span>Arsip Dokumen PDF</span>
             </button>
             <button 
-              onClick={() => { setActiveTab('articles'); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className={`transition-colors py-1 ${activeTab === 'articles' ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
+              onClick={() => navigate('/artikel')} 
+              className={`transition-colors py-1 cursor-pointer ${(currentPath === '/artikel' || isArticleDetail) ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
             >
               Jurnal & Esai
             </button>
             <button 
-              onClick={() => { setActiveTab('team'); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className={`transition-colors py-1 ${activeTab === 'team' ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
+              onClick={() => navigate('/tentang')} 
+              className={`transition-colors py-1 cursor-pointer ${currentPath === '/tentang' ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
             >
               Tentang Kami
             </button>
             <button 
-              onClick={() => { setActiveTab('admin'); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className={`transition-colors py-1 ${activeTab === 'admin' ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
+              onClick={() => navigate(session ? '/admin' : '/admin/login')} 
+              className={`transition-colors py-1 flex items-center gap-1 cursor-pointer ${currentPath.startsWith('/admin') ? 'text-sky-600 font-bold border-b-2 border-sky-600' : 'hover:text-sky-600'}`}
             >
-              Admin
+              <Lock className="w-3.5 h-3.5" />
+              <span>Admin</span>
             </button>
           </div>
 
@@ -584,79 +801,241 @@ export default function App() {
           </div>
         </div>
 
+        {/* MOBILE MENU DROPDOWN */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4 font-heading font-semibold text-slate-700 animate-in fade-in slide-in-from-top-4 duration-200">
             <button 
-              onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className="block w-full text-left py-2 hover:text-sky-600"
+              onClick={() => navigate('/')} 
+              className={`block w-full text-left py-2 ${currentPath === '/' ? 'text-sky-600 font-bold' : 'hover:text-sky-600'}`}
             >
               Beranda
             </button>
             <button 
-              onClick={() => { setActiveTab('agenda'); setMobileMenuOpen(false); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className="block w-full text-left py-2 hover:text-sky-600"
+              onClick={() => navigate('/agenda')} 
+              className={`block w-full text-left py-2 ${currentPath.startsWith('/agenda') ? 'text-sky-600 font-bold' : 'hover:text-sky-600'}`}
             >
               Agenda
             </button>
             <button 
-              onClick={() => { setActiveTab('archives'); setMobileMenuOpen(false); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className="block w-full text-left py-2 text-sky-600 font-bold flex items-center gap-2"
+              onClick={() => navigate('/arsip')} 
+              className={`block w-full text-left py-2 flex items-center gap-2 ${currentPath === '/arsip' ? 'text-sky-600 font-bold' : 'hover:text-sky-600'}`}
             >
               <FileText className="w-4 h-4" />
               Arsip Dokumen PDF
             </button>
             <button 
-              onClick={() => { setActiveTab('articles'); setMobileMenuOpen(false); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className="block w-full text-left py-2 hover:text-sky-600"
+              onClick={() => navigate('/artikel')} 
+              className={`block w-full text-left py-2 ${currentPath.startsWith('/artikel') ? 'text-sky-600 font-bold' : 'hover:text-sky-600'}`}
             >
               Jurnal & Esai
             </button>
             <button 
-              onClick={() => { setActiveTab('team'); setMobileMenuOpen(false); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className="block w-full text-left py-2 hover:text-sky-600"
+              onClick={() => navigate('/tentang')} 
+              className={`block w-full text-left py-2 ${currentPath === '/tentang' ? 'text-sky-600 font-bold' : 'hover:text-sky-600'}`}
             >
               Tentang Kami
             </button>
             <button 
-              onClick={() => { setActiveTab('admin'); setMobileMenuOpen(false); setSelectedArticle(null); setSelectedPdf(null); }} 
-              className="block w-full text-left py-2 hover:text-sky-600"
+              onClick={() => navigate(session ? '/admin' : '/admin/login')} 
+              className={`block w-full text-left py-2 flex items-center gap-1.5 ${currentPath.startsWith('/admin') ? 'text-sky-600 font-bold' : 'hover:text-sky-600'}`}
             >
-              Kelola Konten (Admin)
+              <Lock className="w-4 h-4" />
+              Portal Admin
             </button>
           </div>
         )}
       </nav>
 
-      {/* --- KONTEN HALAMAN --- */}
+      {/* --- KONTEN HALAMAN UTAMA --- */}
       <main className="flex-1">
-        {/* TAMPILAN ARTIKEL TUNGGAL (EDITORIAL READER) */}
-        {selectedArticle ? (
+
+        {/* 1. HALAMAN DETAIL AGENDA (ROUTING /agenda/:slugOrId) */}
+        {isAgendaDetail && (
           <div className="py-20 max-w-4xl mx-auto px-6">
             <button 
-              onClick={() => setSelectedArticle(null)}
+              onClick={() => navigate('/agenda')}
               className="mb-8 inline-flex items-center gap-2 text-sm font-heading font-bold text-sky-600 hover:text-sky-700 transition-colors cursor-pointer"
             >
-              <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar Arsip
+              <ArrowLeft className="w-4 h-4" /> Kembali ke Kalender Agenda
+            </button>
+
+            {loadingData ? (
+              <div className="py-24 text-center bg-white rounded-3xl p-12 border border-slate-100 shadow-sm">
+                <Loader2 className="w-8 h-8 text-sky-600 animate-spin mx-auto mb-4" />
+                <p className="font-heading font-bold text-slate-700">Memuat detail agenda...</p>
+              </div>
+            ) : !currentAgenda ? (
+              <div className="bg-white rounded-3xl p-10 md:p-16 shadow-sm border border-slate-100 text-center space-y-4">
+                <AlertCircle className="w-16 h-16 text-orange-500 mx-auto" />
+                <h2 className="text-2xl md:text-4xl font-heading font-extrabold text-slate-900">
+                  Agenda Tidak Ditemukan
+                </h2>
+                <p className="text-slate-500 max-w-md mx-auto text-sm leading-relaxed">
+                  Agenda dengan identitas "{agendaParam}" tidak ditemukan atau telah diarsipkan oleh pengelola Punel Art Communication.
+                </p>
+                <div className="pt-4">
+                  <Button variant="primary" onClick={() => navigate('/agenda')}>
+                    Lihat Semua Agenda
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-10">
+                <div className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border border-slate-100">
+                  {/* Badges & Status */}
+                  <div className="flex flex-wrap items-center gap-2.5 mb-5">
+                    <Badge variant="orange">{currentAgenda.category}</Badge>
+                    <Badge variant={currentAgenda.status === 'upcoming' ? 'sky' : currentAgenda.status === 'ongoing' ? 'emerald' : 'slate'}>
+                      {currentAgenda.status === 'upcoming' ? 'Akan Datang' : currentAgenda.status === 'ongoing' ? 'Sedang Berlangsung' : 'Selesai'}
+                    </Badge>
+                  </div>
+
+                  <h1 className="text-3xl md:text-5xl font-heading font-extrabold text-slate-900 leading-tight">
+                    {currentAgenda.title}
+                  </h1>
+
+                  {/* Metadata Bar */}
+                  <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 my-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 text-xs font-heading font-semibold text-slate-600">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
+                        <Calendar className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-400 uppercase tracking-wider">Tanggal</div>
+                        <div className="text-slate-900 font-bold">{currentAgenda.date}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
+                        <Clock className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-400 uppercase tracking-wider">Waktu</div>
+                        <div className="text-slate-900 font-bold">{currentAgenda.time} WIB</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 sm:col-span-2 md:col-span-1">
+                      <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
+                        <MapPin className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-400 uppercase tracking-wider">Lokasi</div>
+                        <div className="text-slate-900 font-bold line-clamp-1">{currentAgenda.location}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Poster / Foto Utama */}
+                  <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden mb-10 shadow-md">
+                    <img 
+                      src={currentAgenda.image} 
+                      alt={currentAgenda.title} 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+
+                  {/* Deskripsi Lengkap & Latar Belakang */}
+                  <div className="space-y-6 text-slate-700 text-base md:text-lg leading-relaxed font-sans whitespace-pre-line">
+                    <h3 className="text-xl font-heading font-bold text-slate-900">
+                      Tentang Kegiatan Ini
+                    </h3>
+                    <p>{currentAgenda.longDescription || currentAgenda.description}</p>
+                  </div>
+
+                  {/* Rangkaian Acara / Rundown */}
+                  {currentAgenda.schedule && currentAgenda.schedule.length > 0 && (
+                    <div className="mt-12 pt-8 border-t border-slate-100">
+                      <h3 className="text-xl font-heading font-bold text-slate-900 mb-6">
+                        Susunan Rangkaian Acara
+                      </h3>
+                      <div className="space-y-3">
+                        {currentAgenda.schedule.map((item, idx) => (
+                          <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+                            <span className="font-heading font-bold text-sky-600 text-sm shrink-0 sm:w-36">
+                              {item.time}
+                            </span>
+                            <span className="text-sm font-sans text-slate-700 font-medium">
+                              {item.activity}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Penyelenggara */}
+                  <div className="mt-10 p-5 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-between text-xs font-heading">
+                    <span className="text-slate-500">Penyelenggara:</span>
+                    <strong className="text-sky-800 font-bold">{currentAgenda.organizer || 'Punel Art Communication'}</strong>
+                  </div>
+
+                  {/* Aksi & Tombol Registrasi */}
+                  <div className="mt-10 pt-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                      <Button 
+                        variant="primary" 
+                        onClick={() => setRegisterItem({ title: currentAgenda.title, type: 'agenda' })}
+                        className="w-full sm:w-auto !px-8 !py-3.5"
+                      >
+                        Daftar Hadir via WhatsApp
+                      </Button>
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                      <a 
+                        href={`https://wa.me/?text=${encodeURIComponent(`Ayo ikuti kegiatan "${currentAgenda.title}" bersama Punel Art Communication: ${window.location.href}`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-3 rounded-full border border-slate-200 text-slate-700 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 text-xs font-heading font-bold flex items-center gap-2 transition-colors cursor-pointer"
+                        title="Bagikan ke WhatsApp"
+                      >
+                        <Share2 className="w-4 h-4 text-emerald-600" />
+                        <span>WhatsApp</span>
+                      </a>
+                      <button 
+                        onClick={handleCopyLink}
+                        className="px-4 py-3 rounded-full border border-slate-200 text-slate-700 hover:text-sky-600 hover:border-sky-300 hover:bg-sky-50 text-xs font-heading font-bold flex items-center gap-2 transition-colors cursor-pointer"
+                        title="Salin Tautan"
+                      >
+                        {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                        <span>{copiedLink ? 'Tersalin!' : 'Salin Link'}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 2. HALAMAN DETAIL ARTIKEL (ROUTING /artikel/:id) */}
+        {isArticleDetail && currentArticle && (
+          <div className="py-20 max-w-4xl mx-auto px-6">
+            <button 
+              onClick={() => navigate('/artikel')}
+              className="mb-8 inline-flex items-center gap-2 text-sm font-heading font-bold text-sky-600 hover:text-sky-700 transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar Arsip Jurnal
             </button>
             <div className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border border-slate-100">
-              <Badge variant="sky">{selectedArticle.category}</Badge>
+              <Badge variant="sky">{currentArticle.category}</Badge>
               <h1 className="text-3xl md:text-5xl font-heading font-extrabold text-slate-900 mt-6 leading-tight">
-                {selectedArticle.title}
+                {currentArticle.title}
               </h1>
               <div className="flex items-center gap-4 text-xs font-heading font-semibold text-slate-500 my-6 pb-6 border-b border-slate-100">
-                <span>Oleh: <strong className="text-slate-800">{selectedArticle.author}</strong></span>
+                <span>Oleh: <strong className="text-slate-800">{currentArticle.author}</strong></span>
                 <span>•</span>
-                <span>{selectedArticle.date}</span>
+                <span>{currentArticle.date}</span>
               </div>
               <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden mb-10 shadow-inner">
                 <img 
-                  src={selectedArticle.image} 
-                  alt={selectedArticle.title} 
+                  src={currentArticle.image} 
+                  alt={currentArticle.title} 
                   className="w-full h-full object-cover" 
                 />
               </div>
               <div className="prose prose-slate max-w-none text-slate-700 text-lg leading-relaxed space-y-6 whitespace-pre-line font-sans">
-                {selectedArticle.content}
+                {currentArticle.content}
               </div>
               <div className="mt-14 pt-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p className="text-sm text-slate-500 font-heading">
@@ -669,464 +1048,159 @@ export default function App() {
               </div>
             </div>
           </div>
-        ) : (
-          <>
-            {/* 1. BERANDA (HOME) */}
-            {activeTab === 'home' && (
-              <div>
-                {/* HERO SECTION EDITORIAL */}
-                <section className="relative overflow-hidden py-24 md:py-32 bg-gradient-to-b from-sky-50/70 via-slate-50 to-slate-50">
-                  <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-12 gap-12 items-center">
-                    <div className="md:col-span-7 space-y-6">
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100/80 text-sky-700 text-xs font-heading font-bold uppercase tracking-wider">
-                        <span className="w-2 h-2 rounded-full bg-sky-600 animate-pulse"></span>
-                        Kolektif Seni & Kebudayaan Bahari Muncar
-                      </div>
-                      <h1 className="text-4xl md:text-6xl font-heading font-extrabold text-slate-900 leading-[1.12] tracking-tight">
-                        Merawat Ingatan Pesisir Lewat <span className="text-sky-600">Seni</span>, <span className="text-orange-500">Komunikasi</span> & <span className="text-slate-900">Aksi</span>.
-                      </h1>
-                      <p className="text-lg md:text-xl text-slate-600 leading-relaxed font-sans max-w-xl">
-                        Ruang temu pegiat budaya, seniman, dan masyarakat bahari dalam mendokumentasikan tradisi lokal, menerbitkan monograf riset, serta membuka akses arsip pengetahuan secara gratis.
-                      </p>
-                      <div className="flex flex-wrap items-center gap-4 pt-4">
-                        <Button variant="primary" onClick={() => setActiveTab('archives')}>
-                          <BookOpen className="w-4 h-4" />
-                          Akses Portal Arsip PDF
-                        </Button>
-                        <Button variant="outline" onClick={() => setActiveTab('agenda')}>
-                          Eksplorasi Agenda <ArrowRight className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="md:col-span-5 relative">
-                      <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border-4 border-white rotate-1 hover:rotate-0 transition-transform duration-500">
-                        <img 
-                          src="https://images.unsplash.com/photo-1544256718-3b610a088d43?auto=format&fit=crop&q=80&w=1000" 
-                          alt="Pelabuhan Muncar" 
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" 
-                        />
-                      </div>
-                      <div className="absolute -bottom-6 -left-6 bg-white p-5 rounded-2xl shadow-xl border border-slate-100 hidden sm:block max-w-xs">
-                        <p className="text-xs font-heading font-bold text-sky-600 uppercase tracking-wider">Portal Arsip Terbuka</p>
-                        <p className="text-sm font-heading font-bold text-slate-800 mt-1">
-                          "Semua publikasi, zine, dan monograf riset dapat dibaca daring dan diunduh bebas."
-                        </p>
-                      </div>
+        )}
+
+        {/* 3. HALAMAN LOGIN ADMINISTRATOR (ROUTING /admin/login) */}
+        {currentPath === '/admin/login' && (
+          <div className="py-24 max-w-md mx-auto px-6">
+            <div className="bg-white rounded-3xl p-8 md:p-10 shadow-xl border border-slate-100">
+              <div className="text-center mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-sky-600 flex items-center justify-center text-white font-heading font-extrabold text-2xl shadow-lg shadow-sky-500/30 mx-auto mb-4">
+                  P
+                </div>
+                <h2 className="text-2xl font-heading font-extrabold text-slate-900">
+                  Portal Administrator
+                </h2>
+                <p className="text-xs text-slate-500 font-sans mt-2">
+                  Masuk menggunakan akun otorisasi Supabase untuk mengelola arsip, agenda, dan publikasi.
+                </p>
+              </div>
+
+              {loginError && (
+                <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-heading font-semibold flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <span>{loginError}</span>
+                </div>
+              )}
+
+              {session ? (
+                <div className="text-center space-y-4 py-4">
+                  <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-xs font-heading font-semibold">
+                    Anda telah masuk sebagai <strong>{session.user?.email}</strong>.
+                  </div>
+                  <Button variant="primary" className="w-full" onClick={() => navigate('/admin')}>
+                    Buka Dashboard Admin
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={handleLogout}>
+                    Keluar / Logout
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleLoginSubmit} className="space-y-5">
+                  <div>
+                    <label className="block text-xs font-heading font-bold uppercase tracking-wider text-slate-700 mb-2">
+                      Alamat Email Admin
+                    </label>
+                    <input 
+                      type="email" 
+                      required
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="admin@punelart.org" 
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 font-sans text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-heading font-bold uppercase tracking-wider text-slate-700 mb-2">
+                      Kata Sandi
+                    </label>
+                    <div className="relative">
+                      <input 
+                        type={showPassword ? 'text' : 'password'} 
+                        required
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="••••••••••••" 
+                        className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 font-sans text-sm"
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        title={showPassword ? 'Sembunyikan' : 'Tampilkan'}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
-                </section>
 
-                {/* HIGHLIGHT PUBLIKASI & ARSIP DOKUMEN PDF TERBARU */}
-                <section className="py-24 max-w-7xl mx-auto px-6">
-                  <div className="flex flex-col md:flex-row md:items-end justify-between mb-14">
-                    <SectionHeader 
-                      title="Publikasi & Arsip PDF Pilihan" 
-                      subtitle="Dokumen etnografi, katalog visual perahu tradisional, dan zine independen yang siap dibaca serta diunduh." 
-                    />
-                    <Button variant="ghost" onClick={() => setActiveTab('archives')} className="mb-14">
-                      Buka Semua Arsip PDF <ArrowRight className="w-4 h-4" />
+                  <div className="pt-2">
+                    <Button type="submit" variant="primary" className="w-full !py-3.5" disabled={isLoggingIn}>
+                      {isLoggingIn ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Memverifikasi...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="w-4 h-4" />
+                          <span>Masuk ke Dashboard</span>
+                        </>
+                      )}
                     </Button>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-8">
-                    {archives.slice(0, 2).map((doc) => (
-                      <Card key={doc.id} className="flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                        <div>
-                          <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100 relative">
-                            <img 
-                              src={doc.coverUrl} 
-                              alt={doc.title} 
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                            />
-                            <div className="absolute top-4 left-4">
-                              <Badge variant="sky">{doc.category}</Badge>
-                            </div>
-                            <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-heading font-bold text-slate-800 shadow-md">
-                              {doc.year}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3 text-xs font-heading font-semibold text-slate-500 mb-2">
-                            <span>Oleh: <strong className="text-slate-700">{doc.author}</strong></span>
-                            <span>•</span>
-                            <span>{doc.pages}</span>
-                            <span>•</span>
-                            <span className="text-orange-600 font-bold">{doc.fileSize}</span>
-                          </div>
-                          <h3 className="text-2xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
-                            {doc.title}
-                          </h3>
-                          <p className="text-slate-600 mt-3 text-sm leading-relaxed line-clamp-2">
-                            {doc.description}
-                          </p>
-                        </div>
-                        <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
-                          <Button 
-                            variant="primary" 
-                            onClick={() => setSelectedPdf(doc)}
-                            className="!px-4 !py-2.5 text-xs"
-                          >
-                            <Eye className="w-4 h-4" /> Baca PDF
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => handleDownload(doc)}
-                            className="!px-4 !py-2.5 text-xs !border-orange-200 text-orange-600 hover:!border-orange-500 hover:!bg-orange-50"
-                          >
-                            <Download className="w-4 h-4" /> Unduh File
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </section>
-
-                {/* HIGHLIGHT AGENDA TERDEKAT */}
-                <section className="py-24 bg-white border-y border-slate-100">
-                  <div className="max-w-7xl mx-auto px-6">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-14">
-                      <SectionHeader 
-                        title="Agenda & Ruang Dialog" 
-                        subtitle="Program publik, temu wicara, lokakarya arsip, dan pameran visual komunitas pesisir." 
-                      />
-                      <Button variant="ghost" onClick={() => setActiveTab('agenda')} className="mb-14">
-                        Lihat Semua Agenda <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-8">
-                      {agendas.slice(0, 2).map((item) => (
-                        <Card key={item.id} className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                          <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100 relative">
-                            <img 
-                              src={item.image} 
-                              alt={item.title} 
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                            />
-                            <div className="absolute top-4 left-4">
-                              <Badge variant="orange">{item.category}</Badge>
-                            </div>
-                          </div>
-                          <h3 className="text-2xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
-                            {item.title}
-                          </h3>
-                          <p className="text-slate-600 mt-3 text-sm leading-relaxed line-clamp-2">
-                            {item.description}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs font-heading font-semibold text-slate-500 mt-6 pt-6 border-t border-slate-100">
-                            <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-sky-600" /> {item.date}</div>
-                            <div className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-sky-600" /> {item.time} WIB</div>
-                            <div className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-sky-600" /> {item.location}</div>
-                          </div>
-                          <div className="mt-6">
-                            <Button 
-                              variant="primary" 
-                              className="w-full"
-                              onClick={() => setRegisterItem({ title: item.title, type: 'agenda' })}
-                            >
-                              Daftar Hadir via WhatsApp
-                            </Button>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-
-                {/* TIM KOLEKTIF PREVIEW */}
-                <section className="py-24 max-w-7xl mx-auto px-6">
-                  <SectionHeader 
-                    title="Orang di Balik Layar" 
-                    subtitle="Penggerak kolektif yang berdedikasi merawat ruang temu dan arsip kebudayaan pesisir." 
-                    align="center"
-                  />
-                  <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
-                    {team.map((m) => (
-                      <div key={m.id} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center hover:shadow-lg transition-all duration-300">
-                        <div className="w-28 h-28 mx-auto rounded-full overflow-hidden mb-5 border-4 border-sky-50 shadow-inner">
-                          <img src={m.image} alt={m.name} className="w-full h-full object-cover" />
-                        </div>
-                        <h4 className="text-lg font-heading font-bold text-slate-900">{m.name}</h4>
-                        <p className="text-xs font-heading font-semibold text-orange-500 mt-1 uppercase tracking-wider">{m.role}</p>
-                        <p className="text-xs text-slate-500 mt-3 leading-relaxed">{m.bio}</p>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              </div>
-            )}
-
-            {/* 2. AGENDA LENGKAP */}
-            {activeTab === 'agenda' && (
-              <div className="py-24 max-w-7xl mx-auto px-6">
-                <SectionHeader 
-                  title="Kalender Agenda & Kegiatan" 
-                  subtitle="Temukan ruang kolaborasi, pameran visual, dan lingkaran diskusi berkala kami di Muncar." 
-                />
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {agendas.map((item) => (
-                    <Card key={item.id} className="flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                      <div>
-                        <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-5 bg-slate-100 relative">
-                          <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="absolute top-3 left-3">
-                            <Badge variant="orange">{item.category}</Badge>
-                          </div>
-                        </div>
-                        <h3 className="text-xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
-                          {item.title}
-                        </h3>
-                        <p className="text-slate-600 mt-2 text-sm leading-relaxed line-clamp-3">
-                          {item.description}
-                        </p>
-                      </div>
-                      <div>
-                        <div className="space-y-1 text-xs font-heading font-semibold text-slate-500 my-6 pt-4 border-t border-slate-100">
-                          <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-sky-600" /> {item.date}</div>
-                          <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-sky-600" /> {item.time} WIB</div>
-                          <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-sky-600" /> {item.location}</div>
-                        </div>
-                        <Button 
-                          variant="primary" 
-                          className="w-full"
-                          onClick={() => setRegisterItem({ title: item.title, type: 'agenda' })}
-                        >
-                          Daftar Sekarang
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 3. PORTAL ARSIP & PUBLIKASI DOKUMEN PDF (MENGGANTIKAN KELAS & PELATIHAN) */}
-            {activeTab === 'archives' && (
-              <div className="py-24 max-w-7xl mx-auto px-6">
-                <SectionHeader 
-                  title="Portal Arsip Dokumen & Publikasi PDF" 
-                  subtitle="Laboratorium publikasi independen Punel Art Communication: monograf etnografi, cetak biru perahu, zine sastra, dan laporan ekologi laut yang dapat dibaca daring maupun diunduh bebas." 
-                />
-
-                {/* FILTER DAN SEARCH BAR */}
-                <div className="mb-12 flex flex-col md:flex-row gap-6 items-center justify-between bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                  {/* Category Pills */}
-                  <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                    {['Semua', 'Riset Etnografi', 'Katalog Seni', 'Publikasi Zine', 'Riset Kebijakan'].map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => setArchiveCategory(cat)}
-                        className={`px-4 py-2 rounded-full text-xs font-heading font-bold transition-all duration-200 cursor-pointer ${
-                          archiveCategory === cat 
-                            ? 'bg-sky-600 text-white shadow-md shadow-sky-500/30' 
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        }`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Search Input */}
-                  <div className="relative w-full md:w-80">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                    <input 
-                      type="text"
-                      value={archiveSearch}
-                      onChange={(e) => setArchiveSearch(e.target.value)}
-                      placeholder="Cari arsip, penulis, topik..."
-                      className="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-200 text-xs font-sans focus:outline-none focus:ring-2 focus:ring-sky-500 bg-slate-50"
-                    />
-                    {archiveSearch && (
-                      <button 
-                        onClick={() => setArchiveSearch('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* GRID DOKUMEN ARSIP */}
-                {filteredArchives.length === 0 ? (
-                  <div className="py-20 text-center bg-white rounded-3xl border border-slate-100 p-8">
-                    <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <h4 className="text-lg font-heading font-bold text-slate-700">Tidak ada dokumen ditemukan</h4>
-                    <p className="text-xs text-slate-500 mt-1">Coba gunakan kata kunci pencarian atau kategori lain.</p>
-                  </div>
-                ) : (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
-                    {filteredArchives.map((doc) => (
-                      <Card key={doc.id} className="flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                        <div>
-                          <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100 relative">
-                            <img 
-                              src={doc.coverUrl} 
-                              alt={doc.title} 
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                            />
-                            <div className="absolute top-4 left-4">
-                              <Badge variant="sky">{doc.category}</Badge>
-                            </div>
-                            <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-heading font-bold text-slate-800 shadow-md">
-                              {doc.year}
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-3 text-xs font-heading font-semibold text-slate-500 mb-2">
-                            <span>Oleh: <strong className="text-slate-800">{doc.author}</strong></span>
-                            <span>•</span>
-                            <span>{doc.pages}</span>
-                            <span>•</span>
-                            <span className="text-orange-600 font-bold">{doc.fileSize}</span>
-                          </div>
-
-                          <h3 className="text-2xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors leading-snug">
-                            {doc.title}
-                          </h3>
-
-                          <p className="text-slate-600 mt-3 text-sm leading-relaxed">
-                            {doc.description}
-                          </p>
-                        </div>
-
-                        {/* TOMBOL AKSI DOKUMEN: BACA & UNDUH */}
-                        <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3">
-                          <Button 
-                            variant="primary" 
-                            className="w-full sm:flex-1 !py-3"
-                            onClick={() => setSelectedPdf(doc)}
-                          >
-                            <Eye className="w-4 h-4" />
-                            <span>Baca Dokumen PDF</span>
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            className="w-full sm:w-auto !py-3 !border-orange-200 text-orange-600 hover:!border-orange-500 hover:!bg-orange-50"
-                            onClick={() => handleDownload(doc)}
-                            title="Unduh File PDF ke Perangkat Anda"
-                          >
-                            <Download className="w-4 h-4" />
-                            <span>Unduh ({doc.fileSize})</span>
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 4. JURNAL & ARSIP (ARTIKEL) */}
-            {activeTab === 'articles' && (
-              <div className="py-24 max-w-7xl mx-auto px-6">
-                <SectionHeader 
-                  title="Jurnal, Esai & Catatan Lapangan" 
-                  subtitle="Hasil pengamatan etnografi, rekaman lisan nelayan, dan catatan kritis kolektif Punel Art Communication." 
-                />
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {articles.map((art) => (
-                    <Card 
-                      key={art.id} 
-                      onClick={() => setSelectedArticle(art)}
-                      className="flex flex-col justify-between group cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  <div className="text-center pt-2">
+                    <button 
+                      type="button" 
+                      onClick={() => navigate('/')}
+                      className="text-xs font-heading font-bold text-slate-400 hover:text-sky-600 transition-colors cursor-pointer"
                     >
-                      <div>
-                        <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-5 bg-slate-100 relative">
-                          <img src={art.image} alt={art.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="absolute top-3 left-3">
-                            <Badge variant="sky">{art.category}</Badge>
-                          </div>
-                        </div>
-                        <div className="text-xs font-heading font-semibold text-slate-400 mb-2">
-                          {art.date} • {art.author}
-                        </div>
-                        <h3 className="text-xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors leading-snug">
-                          {art.title}
-                        </h3>
-                        <p className="text-slate-600 mt-2 text-sm leading-relaxed line-clamp-3">
-                          {art.summary}
-                        </p>
-                      </div>
-                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-heading font-bold text-sky-600">
-                        <span>Baca Arsip</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 5. TENTANG KAMI & PROFIL TIM */}
-            {activeTab === 'team' && (
-              <div className="py-24 max-w-7xl mx-auto px-6">
-                <div className="max-w-3xl mb-16">
-                  <Badge variant="sky">Tentang Kolektif</Badge>
-                  <h2 className="text-3xl md:text-5xl font-heading font-extrabold text-slate-900 mt-4 leading-tight">
-                    Menjaga Denyut Kebudayaan Pesisir di Ujung Timur Jawa
-                  </h2>
-                  <p className="text-slate-600 mt-6 text-base md:text-lg leading-relaxed font-sans">
-                    <strong>Punel Art Communication</strong> didirikan sebagai wadah independen yang berakar di Muncar, Banyuwangi. Kami percaya bahwa pesisir bukan sekadar ruang geografis pelabuhan, melainkan lumbung pengetahuan bahari, ekspresi estetika perahu, dan etika gotong royong yang memerlukan medium pengarsipan modern.
-                  </p>
-                </div>
-
-                <div className="bg-sky-600 rounded-3xl p-8 md:p-12 text-white mb-20 shadow-xl shadow-sky-600/10">
-                  <div className="grid md:grid-cols-3 gap-8 text-center md:text-left">
-                    <div>
-                      <h4 className="text-2xl font-heading font-extrabold text-white">Seni</h4>
-                      <p className="text-sky-100 text-sm mt-2 leading-relaxed">
-                        Mengeksplorasi bahasa visual, fotografi, dan instalasi yang membumi pada narasi kehidupan maritim.
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="text-2xl font-heading font-extrabold text-orange-400">Komunikasi</h4>
-                      <p className="text-sky-100 text-sm mt-2 leading-relaxed">
-                        Menjembatani pengetahuan lisan para sesepuh nelayan dengan publikasi daring dan arsip dokumen PDF terbuka.
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="text-2xl font-heading font-extrabold text-white">Aksi</h4>
-                      <p className="text-sky-100 text-sm mt-2 leading-relaxed">
-                        Menginisiasi lokakarya, pendampingan kampung pesisir, dan kepedulian terhadap kelestarian ekologi laut.
-                      </p>
-                    </div>
+                      ← Kembali ke Beranda Publik
+                    </button>
                   </div>
-                </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
 
-                <SectionHeader 
-                  title="Struktur & Penggerak Kolektif" 
-                  subtitle="Individu yang mendedikasikan waktu dan gagasan untuk keberlanjutan program Punel Art Communication." 
-                />
-                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
-                  {team.map((member) => (
-                    <Card key={member.id} className="text-center group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                      <div className="w-32 h-32 mx-auto rounded-full overflow-hidden mb-6 border-4 border-slate-50 shadow-md">
-                        <img 
-                          src={member.image} 
-                          alt={member.name} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                        />
-                      </div>
-                      <h3 className="text-xl font-heading font-bold text-slate-900">{member.name}</h3>
-                      <p className="text-xs font-heading font-bold text-orange-500 mt-1 uppercase tracking-wider">{member.role}</p>
-                      <p className="text-slate-500 text-sm mt-4 leading-relaxed font-sans">{member.bio}</p>
-                    </Card>
-                  ))}
+        {/* 4. DASHBOARD ADMIN TERPROTEKSI (ROUTING /admin) */}
+        {currentPath === '/admin' && (
+          <div className="py-24 max-w-4xl mx-auto px-6">
+            {authLoading ? (
+              <div className="py-24 text-center bg-white rounded-3xl p-12 border border-slate-100 shadow-sm">
+                <Loader2 className="w-8 h-8 text-sky-600 animate-spin mx-auto mb-4" />
+                <p className="font-heading font-bold text-slate-700">Memeriksa hak akses administrator...</p>
+              </div>
+            ) : !session ? (
+              // PROTEKSI RUTE: Jika belum login, tampilkan blokir & arahkan ke /admin/login
+              <div className="bg-white rounded-3xl p-10 md:p-14 shadow-sm border border-slate-100 text-center space-y-4">
+                <Lock className="w-14 h-14 text-orange-500 mx-auto" />
+                <h2 className="text-2xl md:text-3xl font-heading font-extrabold text-slate-900">
+                  Akses Terbatas Administrator
+                </h2>
+                <p className="text-slate-500 max-w-md mx-auto text-sm leading-relaxed">
+                  Halaman ini memerlukan sesi login administrator yang valid. Silakan masuk terlebih dahulu melalui portal autentikasi.
+                </p>
+                <div className="pt-4 flex justify-center gap-3">
+                  <Button variant="primary" onClick={() => navigate('/admin/login')}>
+                    Buka Halaman Login
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate('/')}>
+                    Kembali ke Beranda
+                  </Button>
                 </div>
               </div>
-            )}
-
-            {/* 6. ADMIN DASHBOARD */}
-            {activeTab === 'admin' && (
-              <div className="py-24 max-w-4xl mx-auto px-6">
-                <SectionHeader 
-                  title="Pusat Penerbitan Konten" 
-                  subtitle={isSupabaseConfigured 
-                    ? "Tersambung langsung dengan Supabase PostgreSQL Database (punel_archives, punel_agenda, punel_articles)." 
-                    : "Mode Simulasi Aktif — Variabel VITE_SUPABASE_URL belum terpasang. Data baru akan masuk ke pratinjau lokal."
-                  } 
-                />
+            ) : (
+              // DASHBOARD ADMINISTRATOR AKTIF
+              <div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-6 border-b border-slate-200">
+                  <div>
+                    <Badge variant="emerald">Sesi Admin Aktif</Badge>
+                    <h1 className="text-2xl md:text-3xl font-heading font-extrabold text-slate-900 mt-2">
+                      Pusat Manajemen Konten
+                    </h1>
+                    <p className="text-xs text-slate-500 font-sans mt-0.5">
+                      Masuk sebagai: <strong className="text-slate-800">{session.user?.email || 'admin@punelart.org'}</strong>
+                    </p>
+                  </div>
+                  <Button variant="danger" className="!px-4 !py-2.5 text-xs" onClick={handleLogout}>
+                    <LogOut className="w-4 h-4" />
+                    <span>Keluar / Logout</span>
+                  </Button>
+                </div>
 
                 <div className="flex flex-wrap gap-3 mb-8">
                   {(['archive', 'agenda', 'article'] as const).map((type) => (
@@ -1239,9 +1313,6 @@ export default function App() {
                             placeholder="https://your-bucket.supabase.co/storage/v1/object/public/archives/file.pdf" 
                             className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 font-sans text-sm"
                           />
-                          <p className="text-[11px] text-slate-400 mt-1">
-                            Bisa berupa tautan dokumen publik di Supabase Storage atau link berkas PDF eksternal.
-                          </p>
                         </div>
                       </>
                     ) : adminType === 'agenda' ? (
@@ -1338,8 +1409,476 @@ export default function App() {
                 </Card>
               </div>
             )}
-          </>
+          </div>
         )}
+
+        {/* 5. HALAMAN BERANDA UTAMA (ROUTING / ATAU /home) */}
+        {(currentPath === '/' || currentPath === '/home') && (
+          <div>
+            {/* HERO SECTION EDITORIAL */}
+            <section className="relative overflow-hidden py-24 md:py-32 bg-gradient-to-b from-sky-50/70 via-slate-50 to-slate-50">
+              <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-12 gap-12 items-center">
+                <div className="md:col-span-7 space-y-6">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100/80 text-sky-700 text-xs font-heading font-bold uppercase tracking-wider">
+                    <span className="w-2 h-2 rounded-full bg-sky-600 animate-pulse"></span>
+                    Kolektif Seni & Kebudayaan Bahari Muncar
+                  </div>
+                  <h1 className="text-4xl md:text-6xl font-heading font-extrabold text-slate-900 leading-[1.12] tracking-tight">
+                    Merawat Ingatan Pesisir Lewat <span className="text-sky-600">Seni</span>, <span className="text-orange-500">Komunikasi</span> & <span className="text-slate-900">Aksi</span>.
+                  </h1>
+                  <p className="text-lg md:text-xl text-slate-600 leading-relaxed font-sans max-w-xl">
+                    Ruang temu pegiat budaya, seniman, dan masyarakat bahari dalam mendokumentasikan tradisi lokal, menerbitkan monograf riset, serta membuka akses arsip pengetahuan secara gratis.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-4 pt-4">
+                    <Button variant="primary" onClick={() => navigate('/arsip')}>
+                      <BookOpen className="w-4 h-4" />
+                      Akses Portal Arsip PDF
+                    </Button>
+                    <Button variant="outline" onClick={() => navigate('/agenda')}>
+                      Eksplorasi Agenda <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="md:col-span-5 relative">
+                  <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border-4 border-white rotate-1 hover:rotate-0 transition-transform duration-500">
+                    <img 
+                      src="https://images.unsplash.com/photo-1544256718-3b610a088d43?auto=format&fit=crop&q=80&w=1000" 
+                      alt="Pelabuhan Muncar" 
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" 
+                    />
+                  </div>
+                  <div className="absolute -bottom-6 -left-6 bg-white p-5 rounded-2xl shadow-xl border border-slate-100 hidden sm:block max-w-xs">
+                    <p className="text-xs font-heading font-bold text-sky-600 uppercase tracking-wider">Portal Arsip Terbuka</p>
+                    <p className="text-sm font-heading font-bold text-slate-800 mt-1">
+                      "Semua publikasi, zine, dan monograf riset dapat dibaca daring dan diunduh bebas."
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* HIGHLIGHT PUBLIKASI & ARSIP DOKUMEN PDF TERBARU */}
+            <section className="py-24 max-w-7xl mx-auto px-6">
+              <div className="flex flex-col md:flex-row md:items-end justify-between mb-14">
+                <SectionHeader 
+                  title="Publikasi & Arsip PDF Pilihan" 
+                  subtitle="Dokumen etnografi, katalog visual perahu tradisional, dan zine independen yang siap dibaca serta diunduh." 
+                />
+                <Button variant="ghost" onClick={() => navigate('/arsip')} className="mb-14">
+                  Buka Semua Arsip PDF <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                {archives.slice(0, 2).map((doc) => (
+                  <Card key={doc.id} className="flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div>
+                      <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100 relative">
+                        <img 
+                          src={doc.coverUrl} 
+                          alt={doc.title} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        />
+                        <div className="absolute top-4 left-4">
+                          <Badge variant="sky">{doc.category}</Badge>
+                        </div>
+                        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-heading font-bold text-slate-800 shadow-md">
+                          {doc.year}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs font-heading font-semibold text-slate-500 mb-2">
+                        <span>Oleh: <strong className="text-slate-700">{doc.author}</strong></span>
+                        <span>•</span>
+                        <span>{doc.pages}</span>
+                        <span>•</span>
+                        <span className="text-orange-600 font-bold">{doc.fileSize}</span>
+                      </div>
+                      <h3 className="text-2xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+                        {doc.title}
+                      </h3>
+                      <p className="text-slate-600 mt-3 text-sm leading-relaxed line-clamp-2">
+                        {doc.description}
+                      </p>
+                    </div>
+                    <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
+                      <Button 
+                        variant="primary" 
+                        onClick={() => setSelectedPdf(doc)}
+                        className="!px-4 !py-2.5 text-xs"
+                      >
+                        <Eye className="w-4 h-4" /> Baca PDF
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => handleDownload(doc)}
+                        className="!px-4 !py-2.5 text-xs !border-orange-200 text-orange-600 hover:!border-orange-500 hover:!bg-orange-50"
+                      >
+                        <Download className="w-4 h-4" /> Unduh File
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </section>
+
+            {/* HIGHLIGHT AGENDA TERDEKAT */}
+            <section className="py-24 bg-white border-y border-slate-100">
+              <div className="max-w-7xl mx-auto px-6">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-14">
+                  <SectionHeader 
+                    title="Agenda & Ruang Dialog" 
+                    subtitle="Program publik, temu wicara, lokakarya arsip, dan pameran visual komunitas pesisir." 
+                  />
+                  <Button variant="ghost" onClick={() => navigate('/agenda')} className="mb-14">
+                    Lihat Semua Agenda <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-8">
+                  {agendas.slice(0, 2).map((item) => (
+                    <Card 
+                      key={item.id} 
+                      className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                      onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
+                    >
+                      <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100 relative">
+                        <img 
+                          src={item.image} 
+                          alt={item.title} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        />
+                        <div className="absolute top-4 left-4">
+                          <Badge variant="orange">{item.category}</Badge>
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+                        {item.title}
+                      </h3>
+                      <p className="text-slate-600 mt-3 text-sm leading-relaxed line-clamp-2">
+                        {item.description}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs font-heading font-semibold text-slate-500 mt-6 pt-6 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-sky-600" /> {item.date}</div>
+                        <div className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-sky-600" /> {item.time} WIB</div>
+                        <div className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-sky-600" /> {item.location}</div>
+                      </div>
+                      <div className="mt-6 grid grid-cols-2 gap-3" onClick={(e) => e.stopPropagation()}>
+                        <Button 
+                          variant="primary" 
+                          className="!px-3 !py-2.5 text-xs"
+                          onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
+                        >
+                          Lihat Detail Agenda
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="!px-3 !py-2.5 text-xs"
+                          onClick={() => setRegisterItem({ title: item.title, type: 'agenda' })}
+                        >
+                          Daftar via WA
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* TIM KOLEKTIF PREVIEW */}
+            <section className="py-24 max-w-7xl mx-auto px-6">
+              <SectionHeader 
+                title="Orang di Balik Layar" 
+                subtitle="Penggerak kolektif yang berdedikasi merawat ruang temu dan arsip kebudayaan pesisir." 
+                align="center"
+              />
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+                {team.map((m) => (
+                  <div key={m.id} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center hover:shadow-lg transition-all duration-300">
+                    <div className="w-28 h-28 mx-auto rounded-full overflow-hidden mb-5 border-4 border-sky-50 shadow-inner">
+                      <img src={m.image} alt={m.name} className="w-full h-full object-cover" />
+                    </div>
+                    <h4 className="text-lg font-heading font-bold text-slate-900">{m.name}</h4>
+                    <p className="text-xs font-heading font-semibold text-orange-500 mt-1 uppercase tracking-wider">{m.role}</p>
+                    <p className="text-xs text-slate-500 mt-3 leading-relaxed">{m.bio}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* 6. HALAMAN KALENDER AGENDA LENGKAP (ROUTING /agenda) */}
+        {currentPath === '/agenda' && (
+          <div className="py-24 max-w-7xl mx-auto px-6">
+            <SectionHeader 
+              title="Kalender Agenda & Kegiatan" 
+              subtitle="Temukan ruang kolaborasi, pameran visual, dan lingkaran diskusi berkala kami di Muncar." 
+            />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {agendas.map((item) => (
+                <Card 
+                  key={item.id} 
+                  className="flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                  onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
+                >
+                  <div>
+                    <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-5 bg-slate-100 relative">
+                      <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute top-3 left-3">
+                        <Badge variant="orange">{item.category}</Badge>
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="text-slate-600 mt-2 text-sm leading-relaxed line-clamp-3">
+                      {item.description}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="space-y-1 text-xs font-heading font-semibold text-slate-500 my-6 pt-4 border-t border-slate-100">
+                      <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-sky-600" /> {item.date}</div>
+                      <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-sky-600" /> {item.time} WIB</div>
+                      <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-sky-600" /> {item.location}</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3" onClick={(e) => e.stopPropagation()}>
+                      <Button 
+                        variant="primary" 
+                        className="!px-3 !py-2.5 text-xs"
+                        onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
+                      >
+                        Detail Lengkap
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="!px-3 !py-2.5 text-xs"
+                        onClick={() => setRegisterItem({ title: item.title, type: 'agenda' })}
+                      >
+                        Daftar Hadir
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 7. PORTAL ARSIP & PUBLIKASI DOKUMEN PDF (ROUTING /arsip) */}
+        {currentPath === '/arsip' && (
+          <div className="py-24 max-w-7xl mx-auto px-6">
+            <SectionHeader 
+              title="Portal Arsip Dokumen & Publikasi PDF" 
+              subtitle="Laboratorium publikasi independen Punel Art Communication: monograf etnografi, cetak biru perahu, zine sastra, dan laporan ekologi laut yang dapat dibaca daring maupun diunduh bebas." 
+            />
+
+            {/* FILTER DAN SEARCH BAR */}
+            <div className="mb-12 flex flex-col md:flex-row gap-6 items-center justify-between bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                {['Semua', 'Riset Etnografi', 'Katalog Seni', 'Publikasi Zine', 'Riset Kebijakan'].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setArchiveCategory(cat)}
+                    className={`px-4 py-2 rounded-full text-xs font-heading font-bold transition-all duration-200 cursor-pointer ${
+                      archiveCategory === cat 
+                        ? 'bg-sky-600 text-white shadow-md shadow-sky-500/30' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative w-full md:w-80">
+                <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                <input 
+                  type="text"
+                  value={archiveSearch}
+                  onChange={(e) => setArchiveSearch(e.target.value)}
+                  placeholder="Cari arsip, penulis, topik..."
+                  className="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-200 text-xs font-sans focus:outline-none focus:ring-2 focus:ring-sky-500 bg-slate-50"
+                />
+                {archiveSearch && (
+                  <button 
+                    onClick={() => setArchiveSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* GRID DOKUMEN ARSIP */}
+            {filteredArchives.length === 0 ? (
+              <div className="py-20 text-center bg-white rounded-3xl border border-slate-100 p-8">
+                <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h4 className="text-lg font-heading font-bold text-slate-700">Tidak ada dokumen ditemukan</h4>
+                <p className="text-xs text-slate-500 mt-1">Coba gunakan kata kunci pencarian atau kategori lain.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
+                {filteredArchives.map((doc) => (
+                  <Card key={doc.id} className="flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div>
+                      <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100 relative">
+                        <img 
+                          src={doc.coverUrl} 
+                          alt={doc.title} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        />
+                        <div className="absolute top-4 left-4">
+                          <Badge variant="sky">{doc.category}</Badge>
+                        </div>
+                        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-heading font-bold text-slate-800 shadow-md">
+                          {doc.year}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3 text-xs font-heading font-semibold text-slate-500 mb-2">
+                        <span>Oleh: <strong className="text-slate-800">{doc.author}</strong></span>
+                        <span>•</span>
+                        <span>{doc.pages}</span>
+                        <span>•</span>
+                        <span className="text-orange-600 font-bold">{doc.fileSize}</span>
+                      </div>
+
+                      <h3 className="text-2xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors leading-snug">
+                        {doc.title}
+                      </h3>
+
+                      <p className="text-slate-600 mt-3 text-sm leading-relaxed">
+                        {doc.description}
+                      </p>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3">
+                      <Button 
+                        variant="primary" 
+                        className="w-full sm:flex-1 !py-3"
+                        onClick={() => setSelectedPdf(doc)}
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>Baca Dokumen PDF</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full sm:w-auto !py-3 !border-orange-200 text-orange-600 hover:!border-orange-500 hover:!bg-orange-50"
+                        onClick={() => handleDownload(doc)}
+                        title="Unduh File PDF ke Perangkat Anda"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Unduh ({doc.fileSize})</span>
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 8. HALAMAN JURNAL & ARTIKEL LENGKAP (ROUTING /artikel) */}
+        {currentPath === '/artikel' && (
+          <div className="py-24 max-w-7xl mx-auto px-6">
+            <SectionHeader 
+              title="Jurnal, Esai & Catatan Lapangan" 
+              subtitle="Hasil pengamatan etnografi, rekaman lisan nelayan, dan catatan kritis kolektif Punel Art Communication." 
+            />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {articles.map((art) => (
+                <Card 
+                  key={art.id} 
+                  onClick={() => navigate(`/artikel/${art.slug || slugify(art.title)}`)}
+                  className="flex flex-col justify-between group cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div>
+                    <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-5 bg-slate-100 relative">
+                      <img src={art.image} alt={art.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute top-3 left-3">
+                        <Badge variant="sky">{art.category}</Badge>
+                      </div>
+                    </div>
+                    <div className="text-xs font-heading font-semibold text-slate-400 mb-2">
+                      {art.date} • {art.author}
+                    </div>
+                    <h3 className="text-xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors leading-snug">
+                      {art.title}
+                    </h3>
+                    <p className="text-slate-600 mt-2 text-sm leading-relaxed line-clamp-3">
+                      {art.summary}
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-heading font-bold text-sky-600">
+                    <span>Baca Arsip</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 9. HALAMAN TENTANG KAMI (ROUTING /tentang) */}
+        {currentPath === '/tentang' && (
+          <div className="py-24 max-w-7xl mx-auto px-6">
+            <div className="max-w-3xl mb-16">
+              <Badge variant="sky">Tentang Kolektif</Badge>
+              <h2 className="text-3xl md:text-5xl font-heading font-extrabold text-slate-900 mt-4 leading-tight">
+                Menjaga Denyut Kebudayaan Pesisir di Ujung Timur Jawa
+              </h2>
+              <p className="text-slate-600 mt-6 text-base md:text-lg leading-relaxed font-sans">
+                <strong>Punel Art Communication</strong> didirikan sebagai wadah independen yang berakar di Muncar, Banyuwangi. Kami percaya bahwa pesisir bukan sekadar ruang geografis pelabuhan, melainkan lumbung pengetahuan bahari, ekspresi estetika perahu, dan etika gotong royong yang memerlukan medium pengarsipan modern.
+              </p>
+            </div>
+
+            <div className="bg-sky-600 rounded-3xl p-8 md:p-12 text-white mb-20 shadow-xl shadow-sky-600/10">
+              <div className="grid md:grid-cols-3 gap-8 text-center md:text-left">
+                <div>
+                  <h4 className="text-2xl font-heading font-extrabold text-white">Seni</h4>
+                  <p className="text-sky-100 text-sm mt-2 leading-relaxed">
+                    Mengeksplorasi bahasa visual, fotografi, dan instalasi yang membumi pada narasi kehidupan maritim.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-2xl font-heading font-extrabold text-orange-400">Komunikasi</h4>
+                  <p className="text-sky-100 text-sm mt-2 leading-relaxed">
+                    Menjembatani pengetahuan lisan para sesepuh nelayan dengan publikasi daring dan arsip dokumen PDF terbuka.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-2xl font-heading font-extrabold text-white">Aksi</h4>
+                  <p className="text-sky-100 text-sm mt-2 leading-relaxed">
+                    Menginisiasi lokakarya, pendampingan kampung pesisir, dan kepedulian terhadap kelestarian ekologi laut.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <SectionHeader 
+              title="Struktur & Penggerak Kolektif" 
+              subtitle="Individu yang mendedikasikan waktu dan gagasan untuk keberlanjutan program Punel Art Communication." 
+            />
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+              {team.map((member) => (
+                <Card key={member.id} className="text-center group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                  <div className="w-32 h-32 mx-auto rounded-full overflow-hidden mb-6 border-4 border-slate-50 shadow-md">
+                    <img 
+                      src={member.image} 
+                      alt={member.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                    />
+                  </div>
+                  <h3 className="text-xl font-heading font-bold text-slate-900">{member.name}</h3>
+                  <p className="text-xs font-heading font-bold text-orange-500 mt-1 uppercase tracking-wider">{member.role}</p>
+                  <p className="text-slate-500 text-sm mt-4 leading-relaxed font-sans">{member.bio}</p>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* --- MODAL INTERAKTIF PEMBACA PDF (IN-WEBSITE PDF VIEWER) --- */}
@@ -1577,11 +2116,11 @@ export default function App() {
           <div className="md:col-span-3 space-y-3 font-sans text-sm">
             <h4 className="font-heading font-bold text-white text-base">Navigasi Arsip</h4>
             <ul className="space-y-2 text-slate-400">
-              <li><button onClick={() => { setActiveTab('home'); setSelectedArticle(null); setSelectedPdf(null); }} className="hover:text-sky-400 transition-colors cursor-pointer">Beranda</button></li>
-              <li><button onClick={() => { setActiveTab('agenda'); setSelectedArticle(null); setSelectedPdf(null); }} className="hover:text-sky-400 transition-colors cursor-pointer">Agenda Pesisir</button></li>
-              <li><button onClick={() => { setActiveTab('archives'); setSelectedArticle(null); setSelectedPdf(null); }} className="hover:text-sky-400 transition-colors cursor-pointer">Arsip Dokumen PDF</button></li>
-              <li><button onClick={() => { setActiveTab('articles'); setSelectedArticle(null); setSelectedPdf(null); }} className="hover:text-sky-400 transition-colors cursor-pointer">Jurnal & Esai</button></li>
-              <li><button onClick={() => { setActiveTab('team'); setSelectedArticle(null); setSelectedPdf(null); }} className="hover:text-sky-400 transition-colors cursor-pointer">Profil Tim</button></li>
+              <li><button onClick={() => navigate('/')} className="hover:text-sky-400 transition-colors cursor-pointer">Beranda</button></li>
+              <li><button onClick={() => navigate('/agenda')} className="hover:text-sky-400 transition-colors cursor-pointer">Agenda Pesisir</button></li>
+              <li><button onClick={() => navigate('/arsip')} className="hover:text-sky-400 transition-colors cursor-pointer">Arsip Dokumen PDF</button></li>
+              <li><button onClick={() => navigate('/artikel')} className="hover:text-sky-400 transition-colors cursor-pointer">Jurnal & Esai</button></li>
+              <li><button onClick={() => navigate('/tentang')} className="hover:text-sky-400 transition-colors cursor-pointer">Profil Tim</button></li>
             </ul>
           </div>
 
