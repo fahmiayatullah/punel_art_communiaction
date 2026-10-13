@@ -3,7 +3,7 @@ import {
   Menu, X, ArrowRight, Calendar, MapPin, Clock, 
   Heart, ArrowLeft, Download, FileText, Eye, EyeOff,
   BookOpen, ExternalLink, Search, Share2, Copy, Check,
-  LogOut, Lock, ShieldCheck, AlertCircle, Loader2
+  LogOut, Lock, ShieldCheck, AlertCircle, Loader2, Trash2
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
@@ -69,130 +69,22 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-// --- MOCK DATA FALLBACK (EDITORIAL MARITIM MUNCAR) ---
-const MOCK_AGENDAS: Agenda[] = [
-  {
-    id: '1',
-    slug: 'diskusi-pesisir-menggali-ingatan-laut',
-    title: 'Diskusi Pesisir: Menggali Ingatan Laut',
-    date: '10 Nov 2026',
-    time: '15:00',
-    location: 'Sekretariat Punel, Muncar, Banyuwangi',
-    status: 'upcoming',
-    category: 'Diskusi',
-    organizer: 'Punel Art Communication & Paguyuban Nelayan Selat Bali',
-    description: 'Diskusi rutin membedah arsip kebudayaan bahari masyarakat Muncar dalam menghadapi perubahan iklim, pergeseran musim tangkap, dan modernisasi alat tangkap perahu tradisional.',
-    longDescription: `Sejak berabad-abad lampau, masyarakat Muncar menggantungkan hidup pada ritme Selat Bali. Tradisi lisan, penanggalan bintang (pranata mangsa laut), dan ritual laut menjadi pedoman navigasi para leluhur nelayan pesisir Banyuwangi. Namun, di tengah krisis iklim global dan ekspansi industri perikanan skala besar, pengetahuan lokal ini kian terdesak dan terancam punah.\n\nDalam sesi diskusi pesisir edisi kali ini, kami mengundang para sesepuh nelayan, peneliti maritim, serta generasi muda untuk duduk melingkar membedah kembali arsip lisan dan catatan sejarah perahu. Forum ini bertujuan menyusun rekomendasi bersama dalam merawat kelestarian ekologi pesisir serta memperkuat solidaritas antarkomunitas nelayan tradisional.`,
-    schedule: [
-      { time: '15:00 - 15:30 WIB', activity: 'Registrasi Hadir & Jamuan Kopi Pesisir' },
-      { time: '15:30 - 16:30 WIB', activity: 'Pemutaran Dokumentasi Audio-Visual Perahu Muncar' },
-      { time: '16:30 - 17:30 WIB', activity: 'Sesi Diskusi Terbuka bersama Peneliti & Tokoh Nelayan' },
-      { time: '17:30 - 17:45 WIB', activity: 'Penyusunan Butir Kesimpulan & Penutupan' }
-    ],
-    image: 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=1200',
-    isOpenRegistration: true
-  },
-  {
-    id: '2',
-    slug: 'pameran-fotografi-wajah-gelombang-nelayan',
-    title: 'Pameran Fotografi: Wajah & Gelombang Nelayan',
-    date: '01 Des 2026',
-    time: '09:00',
-    location: 'Galeri Kampung Pesisir, Muncar',
-    status: 'upcoming',
-    category: 'Seni Rupa',
-    organizer: 'Divisi Seni Visual Punel Art Communication',
-    description: 'Pameran visual mendokumentasikan keseharian, ritus keberangkatan, dan ketangguhan nelayan tradisional Selat Bali.',
-    longDescription: `Kamera bukan sekadar alat rekam visual, melainkan medium empati yang menangkap kerutan wajah nelayan yang terbakar matahari, kehangatan keluarga di tepian dermaga saat menyambut kepulangan perahu, serta perjuangan menembus ombak Selat Bali di tengah malam.\n\nPameran fotografi ini menampilkan 45 karya cetak analog dan digital yang dikumpulkan selama 6 bulan riset partisipatoris di tiga kampung pesisir Muncar. Melalui pameran ini, kami mengajak publik melihat lebih dekat denyut kehidupan manusia perahu di luar narasi statistik semata.`,
-    schedule: [
-      { time: '09:00 - 10:00 WIB', activity: 'Pembukaan Pameran & Sambutan Kurator' },
-      { time: '10:00 - 12:00 WIB', activity: 'Tur Kuratorial & Dialog Bersama Fotografer Komunitas' },
-      { time: '13:00 - 16:00 WIB', activity: 'Pameran Terbuka untuk Umum & Sesi Cetak Foto Langsung' }
-    ],
-    image: 'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?auto=format&fit=crop&q=80&w=1200',
-    isOpenRegistration: true
-  }
+// --- DAFTAR JUDUL KONTEN DEMO AWAL (DIBERSIHKAN DARI SITUS RESMI) ---
+const DEMO_TITLES = [
+  'Diskusi Pesisir: Menggali Ingatan Laut',
+  'Pameran Fotografi: Wajah & Gelombang Nelayan',
+  'Jejak Perahu Cungkring di Pesisir Muncar',
+  'Merawat Larung Sesaji: Antara Syukur dan Ekologi',
+  'Monograf Etnografi: Kosmologi Laut Masyarakat Muncar',
+  'Katalog Arsip Visual: Perahu Cungkring Terakhir',
+  'Zine Kebudayaan Bahari: Gelombang Suara Pelabuhan Vol. 01',
+  'Laporan Kajian: Ekologi Selat Bali & Hak Nelayan Tradisional'
 ];
 
-const MOCK_ARTICLES: Article[] = [
-  {
-    id: '1',
-    slug: 'jejak-perahu-cungkring-di-pesisir-muncar',
-    title: 'Jejak Perahu Cungkring di Pesisir Muncar',
-    author: 'Tim Riset Punel',
-    date: '01 Okt 2026',
-    category: 'Riset Budaya',
-    summary: 'Menelusuri sejarah, rancang bangun arsitektural, dan nilai filosofis perahu tradisional yang kian punah di tengah arus modernitas.',
-    content: `Perahu Cungkring bukan sekadar alat tangkap bagi nelayan Muncar masa lalu; ia adalah representasi teknologi bahari Nusantara yang memadukan estetika kurva lambung, kekuatan kayu jati pesisir, dan kearifan membaca arus Selat Bali.\n\nDalam beberapa dekade terakhir, populasi perahu Cungkring menurun drastis. Kayu hutan yang kian sulit didapat dan biaya perawatan tinggi membuat nelayan beralih ke perahu fiber mesin tempel yang lebih praktis. Namun, hilangnya Cungkring juga berisiko menghilangkan laku spiritual dan ritual sakral "Petik Laut" yang biasanya menempatkan perahu jenis ini sebagai ikon utamanya.\n\nMelalui riset lapangan dan wawancara mendalam ini, Punel Art Communication berikhtiar merekam rupa, dimensi, serta petuah dari para pembuat perahu (undagi) terakhir di pesisir Muncar. Catatan ini kami dedikasikan sebagai arsip terbuka bagi generasi masa depan.`,
-    image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800'
-  },
-  {
-    id: '2',
-    slug: 'merawat-larung-sesaji-antara-syukur-dan-ekologi',
-    title: 'Merawat Larung Sesaji: Antara Syukur dan Ekologi',
-    author: 'Siti Aminah',
-    date: '08 Okt 2026',
-    category: 'Tradisi',
-    summary: 'Refleksi mendalam tentang makna spiritual Petik Laut dan bagaimana masyarakat nelayan menjaga harmoni dengan ekosistem terumbu karang.',
-    content: `Setiap tahunnya, gelombang laut Muncar menyambut arak-arakan sesaji dalam ritual Petik Laut. Bagi masyarakat pesisir, laut bukanlah hamparan air tanpa jiwa yang bebas dieksploitasi, melainkan rahim kehidupan yang harus dihormati.\n\nEsai ini mengulas pergeseran paradigma ritual dari masa ke masa, serta bagaimana anak-anak muda di Muncar mulai memadukan kesadaran konservasi laut tanpa mencederai sakralitas tradisi nenek moyang.`,
-    image: 'https://images.unsplash.com/photo-1544256718-3b610a088d43?auto=format&fit=crop&q=80&w=800'
-  }
-];
-
-const MOCK_ARCHIVES: ArchiveDocument[] = [
-  {
-    id: '1',
-    title: 'Monograf Etnografi: Kosmologi Laut Masyarakat Muncar',
-    author: 'Tim Riset Punel',
-    year: '2026',
-    category: 'Riset Etnografi',
-    pages: '56 Halaman',
-    fileSize: '4.8 MB',
-    description: 'Kajian komprehensif tentang ritual Petik Laut, sistem navigasi tradisional bintang nelayan Selat Bali, dan dinamika kebudayaan masyarakat pesisir Muncar.',
-    coverUrl: 'https://images.unsplash.com/photo-1544256718-3b610a088d43?auto=format&fit=crop&q=80&w=800',
-    pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    allowDownload: true
-  },
-  {
-    id: '2',
-    title: 'Katalog Arsip Visual: Perahu Cungkring Terakhir',
-    author: 'Siti Aminah & Tim Kuratorial',
-    year: '2026',
-    category: 'Katalog Seni & Arsip',
-    pages: '72 Halaman',
-    fileSize: '12.4 MB',
-    description: 'Dokumentasi fotografi cetak biru lambung perahu tradisional Cungkring, ragam hias ukir pesisir, dan transkrip undagi perahu kayu Muncar.',
-    coverUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800',
-    pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    allowDownload: true
-  },
-  {
-    id: '3',
-    title: 'Zine Kebudayaan Bahari: Gelombang Suara Pelabuhan Vol. 01',
-    author: 'Fahmi Ayatollah & Kolaborator',
-    year: '2026',
-    category: 'Publikasi Zine',
-    pages: '32 Halaman',
-    fileSize: '3.6 MB',
-    description: 'Kompilasi narasi lisan, puisi nelayan tradisional, arsip foto hitam-putih pelelangan ikan pagi, dan ilustrasi seni pesisir independen.',
-    coverUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=800',
-    pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    allowDownload: true
-  },
-  {
-    id: '4',
-    title: 'Laporan Kajian: Ekologi Selat Bali & Hak Nelayan Tradisional',
-    author: 'Koalisi Pesisir Berdaya',
-    year: '2025',
-    category: 'Riset Kebijakan',
-    pages: '44 Halaman',
-    fileSize: '2.9 MB',
-    description: 'Laporan pemetaan wilayah tangkap nelayan skala kecil, dampak krisis iklim lokal, serta rekomendasi proteksi zonasi perikanan berkelanjutan.',
-    coverUrl: 'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?auto=format&fit=crop&q=80&w=800',
-    pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    allowDownload: true
-  }
-];
+// --- INITIAL STATE RESMI (BERSIH DARI DEMO) ---
+const MOCK_AGENDAS: Agenda[] = [];
+const MOCK_ARTICLES: Article[] = [];
+const MOCK_ARCHIVES: ArchiveDocument[] = [];
 
 const MOCK_TEAM: TeamMember[] = [
   {
@@ -335,11 +227,12 @@ export default function App() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // ADMIN DASHBOARD FORM STATE (APPEND-ONLY ARCHIVAL)
+  // ADMIN DASHBOARD FORM & DELETE STATE
   const [adminType, setAdminType] = useState<'archive' | 'agenda' | 'article'>('archive');
   const [adminFormData, setAdminFormData] = useState<any>({});
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
   const [isAdminSubmitting, setIsAdminSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // --- SISTEM NAVIGASI & SCROLL-TO-TOP TERPUSAT ---
   const navigate = (path: string, options?: { replace?: boolean; hash?: string }) => {
@@ -418,8 +311,11 @@ export default function App() {
             supabase.from('punel_team').select('*')
           ]);
 
-          if (agendasRes.data && agendasRes.data.length > 0) {
-            setAgendas(agendasRes.data.map(item => ({
+          const isDemo = (title?: string) => title ? DEMO_TITLES.some(d => title.toLowerCase().includes(d.toLowerCase())) : false;
+
+          if (agendasRes.data) {
+            const cleanAgendas = agendasRes.data.filter(item => !isDemo(item.title));
+            setAgendas(cleanAgendas.map(item => ({
               id: item.id,
               slug: slugify(item.title),
               title: item.title,
@@ -440,8 +336,9 @@ export default function App() {
             })));
           }
 
-          if (articlesRes.data && articlesRes.data.length > 0) {
-            setArticles(articlesRes.data.map(item => ({
+          if (articlesRes.data) {
+            const cleanArticles = articlesRes.data.filter(item => !isDemo(item.title));
+            setArticles(cleanArticles.map(item => ({
               id: item.id,
               slug: slugify(item.title),
               title: item.title,
@@ -454,8 +351,9 @@ export default function App() {
             })));
           }
 
-          if (archivesRes.data && archivesRes.data.length > 0) {
-            setArchives(archivesRes.data.map(item => ({
+          if (archivesRes.data) {
+            const cleanArchives = archivesRes.data.filter(item => !isDemo(item.title));
+            setArchives(cleanArchives.map(item => ({
               id: item.id,
               title: item.title,
               author: item.author || 'Tim Punel',
@@ -761,6 +659,37 @@ export default function App() {
       setAdminMessage('✓ Berhasil ditambahkan ke daftar arsip lokal (Mock Mode)!');
       setIsAdminSubmitting(false);
       setAdminFormData({});
+    }
+  };
+
+  // --- HANDLER ADMIN HAPUS KONTEN (DELETE ACTION) ---
+  const handleAdminDelete = async (type: 'archive' | 'agenda' | 'article', id: string, title: string) => {
+    const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus "${title}"? Data ini akan dihapus dari web.`);
+    if (!confirmed) return;
+
+    setDeletingId(id);
+    try {
+      if (isSupabaseConfigured && supabase) {
+        const table = type === 'archive' ? 'punel_archives' : type === 'agenda' ? 'punel_agenda' : 'punel_articles';
+        const { error } = await supabase.from(table).delete().eq('id', id);
+        if (error) {
+          console.warn('Gagal menghapus dari Supabase:', error.message);
+        }
+      }
+
+      if (type === 'archive') {
+        setArchives(prev => prev.filter(item => item.id !== id));
+      } else if (type === 'agenda') {
+        setAgendas(prev => prev.filter(item => item.id !== id));
+      } else {
+        setArticles(prev => prev.filter(item => item.id !== id));
+      }
+
+      setAdminMessage(`✓ Konten "${title}" berhasil dihapus.`);
+    } catch (err: any) {
+      setAdminMessage(`Gagal menghapus konten: ${err.message}`);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -1283,22 +1212,22 @@ export default function App() {
                   </Button>
                 </div>
 
-                {/* BANNER KEAMANAN & PRINSIP ARSIP ABADI (APPEND-ONLY) */}
-                <div className="mb-8 p-5 rounded-2xl bg-amber-50/90 border border-amber-200/80 flex items-start gap-4 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                {/* BANNER KONTROL KONTEN ADMINISTRATOR (TAMBAH & HAPUS AKTIF) */}
+                <div className="mb-8 p-5 rounded-2xl bg-sky-50/90 border border-sky-200/80 flex items-start gap-4 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 mt-0.5">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-heading font-extrabold text-amber-900 uppercase tracking-wider">
-                        Prinsip Pelestarian Arsip (Append-Only System)
+                      <h4 className="text-xs font-heading font-extrabold text-sky-900 uppercase tracking-wider">
+                        Pusat Kelola Konten & Publikasi
                       </h4>
-                      <span className="text-[10px] font-heading font-bold px-2 py-0.5 rounded-full bg-amber-200/70 text-amber-900 border border-amber-300">
-                        Larang Hapus
+                      <span className="text-[10px] font-heading font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Tambah & Hapus Aktif
                       </span>
                     </div>
-                    <p className="text-xs text-amber-800/90 font-sans mt-1 leading-relaxed">
-                      Sesuai etika dokumentasi kebudayaan Punel Art Communication, portal administrator <strong>hanya dapat menambahkan arsip dan agenda baru</strong>. Seluruh data historis yang telah terbit terkunci secara permanen di database untuk menjamin keaslian dan proteksi catatan pesisir.
+                    <p className="text-xs text-sky-800/90 font-sans mt-1 leading-relaxed">
+                      Administrator memiliki akses penuh untuk <strong>menerbitkan konten baru</strong> serta <strong>menghapus konten lama</strong> secara langsung dari situs web dan basis data Supabase.
                     </p>
                   </div>
                 </div>
@@ -1520,117 +1449,183 @@ export default function App() {
                   </form>
                 </Card>
 
-                {/* DAFTAR DOKUMENTASI TERBITAN (READ-ONLY ARCHIVE VIEWER) */}
+                {/* DAFTAR DOKUMENTASI TERBITAN (BISA DITAMBAH & DIHAPUS OLEH ADMIN) */}
                 <div className="mt-14 space-y-5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
                     <div>
                       <h3 className="text-xl font-heading font-extrabold text-slate-900">
-                        Daftar {adminType === 'archive' ? 'Dokumen PDF Terbit' : adminType === 'agenda' ? 'Agenda Terjadwal' : 'Artikel & Jurnal Terbit'}
+                        Daftar {adminType === 'archive' ? 'Dokumen PDF' : adminType === 'agenda' ? 'Agenda Kegiatan' : 'Artikel & Jurnal'} Aktif
                       </h3>
                       <p className="text-xs text-slate-500 font-sans mt-0.5">
-                        Seluruh rekaman di bawah ini terkunci aman dan tersimpan permanen di arsip publik.
+                        Anda dapat memeriksa tampilan di web atau menghapus konten yang sudah tidak aktif.
                       </p>
                     </div>
-                    <Badge variant="sky">
-                      <Lock className="w-3 h-3 inline mr-1" />
-                      Tersimpan Permanen (Larang Hapus)
+                    <Badge variant="emerald">
+                      Akses Penuh (Bisa Tambah & Hapus)
                     </Badge>
                   </div>
 
-                  <div className="space-y-3">
-                    {adminType === 'archive' && archives.map((item) => (
-                      <div key={item.id} className="bg-white rounded-2xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-slate-200 transition-all">
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-                            <FileText className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-heading font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">{item.category}</span>
-                              <span className="text-xs text-slate-400 font-sans">{item.year} • {item.pages}</span>
-                            </div>
-                            <h4 className="text-sm font-heading font-bold text-slate-900 truncate mt-0.5">{item.title}</h4>
-                            <p className="text-xs text-slate-400 truncate">Penulis: {item.author}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                          <Button 
-                            variant="outline" 
-                            className="!px-3 !py-1.5 text-xs" 
-                            onClick={() => setSelectedPdf(item)}
-                          >
-                            <BookOpen className="w-3.5 h-3.5" />
-                            <span>Buka Dokumen</span>
-                          </Button>
-                          <span className="text-[11px] font-heading font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1 border border-emerald-100">
-                            <Check className="w-3 h-3" /> Terarsip
-                          </span>
-                        </div>
+                  {/* KONTEN ARSIP DOKUMEN PDF */}
+                  {adminType === 'archive' && (
+                    archives.length === 0 ? (
+                      <div className="bg-white rounded-2xl p-8 border border-slate-100 text-center shadow-sm">
+                        <FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                        <h4 className="text-sm font-heading font-bold text-slate-700">Belum Ada Dokumen PDF</h4>
+                        <p className="text-xs text-slate-500 mt-1">Gunakan formulir di atas untuk menambahkan dokumen arsip baru.</p>
                       </div>
-                    ))}
+                    ) : (
+                      <div className="space-y-3">
+                        {archives.map((item) => (
+                          <div key={item.id} className="bg-white rounded-2xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-slate-200 transition-all">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                                <FileText className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-heading font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">{item.category}</span>
+                                  <span className="text-xs text-slate-400 font-sans">{item.year} • {item.pages}</span>
+                                </div>
+                                <h4 className="text-sm font-heading font-bold text-slate-900 truncate mt-0.5">{item.title}</h4>
+                                <p className="text-xs text-slate-400 truncate">Penulis: {item.author}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                              <Button 
+                                variant="outline" 
+                                className="!px-3 !py-1.5 text-xs" 
+                                onClick={() => setSelectedPdf(item)}
+                              >
+                                <BookOpen className="w-3.5 h-3.5" />
+                                <span>Lihat</span>
+                              </Button>
+                              <Button 
+                                variant="danger" 
+                                className="!px-3 !py-1.5 text-xs flex items-center gap-1.5 !bg-rose-50 !text-rose-600 !border-rose-200 hover:!bg-rose-600 hover:!text-white transition-colors"
+                                disabled={deletingId === item.id}
+                                onClick={() => handleAdminDelete('archive', item.id, item.title)}
+                              >
+                                {deletingId === item.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                )}
+                                <span>Hapus</span>
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )}
 
-                    {adminType === 'agenda' && agendas.map((item) => (
-                      <div key={item.id} className="bg-white rounded-2xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-slate-200 transition-all">
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
-                            <Calendar className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-heading font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">{item.category}</span>
-                              <span className="text-xs text-slate-400 font-sans">{item.date} • {item.time} WIB</span>
-                            </div>
-                            <h4 className="text-sm font-heading font-bold text-slate-900 truncate mt-0.5">{item.title}</h4>
-                            <p className="text-xs text-slate-400 truncate"><MapPin className="w-3 h-3 inline mr-1" />{item.location}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                          <Button 
-                            variant="outline" 
-                            className="!px-3 !py-1.5 text-xs" 
-                            onClick={() => navigate(`/agenda/${item.slug || item.id}`)}
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            <span>Buka Laman</span>
-                          </Button>
-                          <span className="text-[11px] font-heading font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1 border border-emerald-100">
-                            <Check className="w-3 h-3" /> Terbit
-                          </span>
-                        </div>
+                  {/* KONTEN AGENDA */}
+                  {adminType === 'agenda' && (
+                    agendas.length === 0 ? (
+                      <div className="bg-white rounded-2xl p-8 border border-slate-100 text-center shadow-sm">
+                        <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                        <h4 className="text-sm font-heading font-bold text-slate-700">Belum Ada Agenda Terjadwal</h4>
+                        <p className="text-xs text-slate-500 mt-1">Gunakan formulir di atas untuk menjadwalkan agenda atau kegiatan baru.</p>
                       </div>
-                    ))}
+                    ) : (
+                      <div className="space-y-3">
+                        {agendas.map((item) => (
+                          <div key={item.id} className="bg-white rounded-2xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-slate-200 transition-all">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                                <Calendar className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-heading font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">{item.category}</span>
+                                  <span className="text-xs text-slate-400 font-sans">{item.date} • {item.time} WIB</span>
+                                </div>
+                                <h4 className="text-sm font-heading font-bold text-slate-900 truncate mt-0.5">{item.title}</h4>
+                                <p className="text-xs text-slate-400 truncate"><MapPin className="w-3 h-3 inline mr-1" />{item.location}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                              <Button 
+                                variant="outline" 
+                                className="!px-3 !py-1.5 text-xs" 
+                                onClick={() => navigate(`/agenda/${item.slug || item.id}`)}
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>Lihat</span>
+                              </Button>
+                              <Button 
+                                variant="danger" 
+                                className="!px-3 !py-1.5 text-xs flex items-center gap-1.5 !bg-rose-50 !text-rose-600 !border-rose-200 hover:!bg-rose-600 hover:!text-white transition-colors"
+                                disabled={deletingId === item.id}
+                                onClick={() => handleAdminDelete('agenda', item.id, item.title)}
+                              >
+                                {deletingId === item.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                )}
+                                <span>Hapus</span>
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )}
 
-                    {adminType === 'article' && articles.map((item) => (
-                      <div key={item.id} className="bg-white rounded-2xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-slate-200 transition-all">
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-                            <BookOpen className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-heading font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">{item.category}</span>
-                              <span className="text-xs text-slate-400 font-sans">{item.date}</span>
-                            </div>
-                            <h4 className="text-sm font-heading font-bold text-slate-900 truncate mt-0.5">{item.title}</h4>
-                            <p className="text-xs text-slate-400 truncate">Penulis: {item.author}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                          <Button 
-                            variant="outline" 
-                            className="!px-3 !py-1.5 text-xs" 
-                            onClick={() => navigate(`/artikel/${item.slug || item.id}`)}
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            <span>Buka Laman</span>
-                          </Button>
-                          <span className="text-[11px] font-heading font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1 border border-emerald-100">
-                            <Check className="w-3 h-3" /> Terbit
-                          </span>
-                        </div>
+                  {/* KONTEN ARTIKEL */}
+                  {adminType === 'article' && (
+                    articles.length === 0 ? (
+                      <div className="bg-white rounded-2xl p-8 border border-slate-100 text-center shadow-sm">
+                        <BookOpen className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                        <h4 className="text-sm font-heading font-bold text-slate-700">Belum Ada Artikel / Jurnal</h4>
+                        <p className="text-xs text-slate-500 mt-1">Gunakan formulir di atas untuk menerbitkan artikel atau esai baru.</p>
                       </div>
-                    ))}
-                  </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {articles.map((item) => (
+                          <div key={item.id} className="bg-white rounded-2xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-slate-200 transition-all">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                                <BookOpen className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-heading font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">{item.category}</span>
+                                  <span className="text-xs text-slate-400 font-sans">{item.date}</span>
+                                </div>
+                                <h4 className="text-sm font-heading font-bold text-slate-900 truncate mt-0.5">{item.title}</h4>
+                                <p className="text-xs text-slate-400 truncate">Penulis: {item.author}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                              <Button 
+                                variant="outline" 
+                                className="!px-3 !py-1.5 text-xs" 
+                                onClick={() => navigate(`/artikel/${item.slug || item.id}`)}
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>Lihat</span>
+                              </Button>
+                              <Button 
+                                variant="danger" 
+                                className="!px-3 !py-1.5 text-xs flex items-center gap-1.5 !bg-rose-50 !text-rose-600 !border-rose-200 hover:!bg-rose-600 hover:!text-white transition-colors"
+                                disabled={deletingId === item.id}
+                                onClick={() => handleAdminDelete('article', item.id, item.title)}
+                              >
+                                {deletingId === item.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                )}
+                                <span>Hapus</span>
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             )}
@@ -1695,54 +1690,62 @@ export default function App() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-8">
-                {archives.slice(0, 2).map((doc) => (
-                  <Card key={doc.id} className="flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div>
-                      <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100 relative">
-                        <img 
-                          src={doc.coverUrl} 
-                          alt={doc.title} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                        />
-                        <div className="absolute top-4 left-4">
-                          <Badge variant="sky">{doc.category}</Badge>
+                {archives.length === 0 ? (
+                  <div className="md:col-span-2 py-16 text-center bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+                    <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <h4 className="text-lg font-heading font-bold text-slate-700">Belum Ada Publikasi Arsip PDF</h4>
+                    <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">Dokumen riset dan arsip kebudayaan sedang dalam proses kurasi dan digitalisasi.</p>
+                  </div>
+                ) : (
+                  archives.slice(0, 2).map((doc) => (
+                    <Card key={doc.id} className="flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                      <div>
+                        <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100 relative">
+                          <img 
+                            src={doc.coverUrl} 
+                            alt={doc.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                          <div className="absolute top-4 left-4">
+                            <Badge variant="sky">{doc.category}</Badge>
+                          </div>
+                          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-heading font-bold text-slate-800 shadow-md">
+                            {doc.year}
+                          </div>
                         </div>
-                        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-heading font-bold text-slate-800 shadow-md">
-                          {doc.year}
+                        <div className="flex items-center gap-3 text-xs font-heading font-semibold text-slate-500 mb-2">
+                          <span>Oleh: <strong className="text-slate-700">{doc.author}</strong></span>
+                          <span>•</span>
+                          <span>{doc.pages}</span>
+                          <span>•</span>
+                          <span className="text-orange-600 font-bold">{doc.fileSize}</span>
                         </div>
+                        <h3 className="text-2xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+                          {doc.title}
+                        </h3>
+                        <p className="text-slate-600 mt-3 text-sm leading-relaxed line-clamp-2">
+                          {doc.description}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-3 text-xs font-heading font-semibold text-slate-500 mb-2">
-                        <span>Oleh: <strong className="text-slate-700">{doc.author}</strong></span>
-                        <span>•</span>
-                        <span>{doc.pages}</span>
-                        <span>•</span>
-                        <span className="text-orange-600 font-bold">{doc.fileSize}</span>
+                      <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
+                        <Button 
+                          variant="primary" 
+                          onClick={() => setSelectedPdf(doc)}
+                          className="!px-4 !py-2.5 text-xs"
+                        >
+                          <Eye className="w-4 h-4" /> Baca PDF
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => handleDownload(doc)}
+                          className="!px-4 !py-2.5 text-xs !border-orange-200 text-orange-600 hover:!border-orange-500 hover:!bg-orange-50"
+                        >
+                          <Download className="w-4 h-4" /> Unduh File
+                        </Button>
                       </div>
-                      <h3 className="text-2xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
-                        {doc.title}
-                      </h3>
-                      <p className="text-slate-600 mt-3 text-sm leading-relaxed line-clamp-2">
-                        {doc.description}
-                      </p>
-                    </div>
-                    <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
-                      <Button 
-                        variant="primary" 
-                        onClick={() => setSelectedPdf(doc)}
-                        className="!px-4 !py-2.5 text-xs"
-                      >
-                        <Eye className="w-4 h-4" /> Baca PDF
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => handleDownload(doc)}
-                        className="!px-4 !py-2.5 text-xs !border-orange-200 text-orange-600 hover:!border-orange-500 hover:!bg-orange-50"
-                      >
-                        <Download className="w-4 h-4" /> Unduh File
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  ))
+                )}
               </div>
             </section>
 
@@ -1760,51 +1763,59 @@ export default function App() {
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-8">
-                  {agendas.slice(0, 2).map((item) => (
-                    <Card 
-                      key={item.id} 
-                      className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-                      onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
-                    >
-                      <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100 relative">
-                        <img 
-                          src={item.image} 
-                          alt={item.title} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                        />
-                        <div className="absolute top-4 left-4">
-                          <Badge variant="orange">{item.category}</Badge>
+                  {agendas.length === 0 ? (
+                    <div className="md:col-span-2 py-16 text-center bg-slate-50 rounded-3xl border border-slate-100 p-8 shadow-sm">
+                      <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                      <h4 className="text-lg font-heading font-bold text-slate-700">Belum Ada Agenda Mendatang</h4>
+                      <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">Rangkaian kegiatan dialog dan program seni pesisir berikutnya akan segera diumumkan.</p>
+                    </div>
+                  ) : (
+                    agendas.slice(0, 2).map((item) => (
+                      <Card 
+                        key={item.id} 
+                        className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                        onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
+                      >
+                        <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100 relative">
+                          <img 
+                            src={item.image} 
+                            alt={item.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                          <div className="absolute top-4 left-4">
+                            <Badge variant="orange">{item.category}</Badge>
+                          </div>
                         </div>
-                      </div>
-                      <h3 className="text-2xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
-                        {item.title}
-                      </h3>
-                      <p className="text-slate-600 mt-3 text-sm leading-relaxed line-clamp-2">
-                        {item.description}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs font-heading font-semibold text-slate-500 mt-6 pt-6 border-t border-slate-100">
-                        <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-sky-600" /> {item.date}</div>
-                        <div className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-sky-600" /> {item.time} WIB</div>
-                        <div className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-sky-600" /> {item.location}</div>
-                      </div>
-                      <div className="mt-6 grid grid-cols-2 gap-3" onClick={(e) => e.stopPropagation()}>
-                        <Button 
-                          variant="primary" 
-                          className="!px-3 !py-2.5 text-xs"
-                          onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
-                        >
-                          Lihat Detail Agenda
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="!px-3 !py-2.5 text-xs"
-                          onClick={() => setRegisterItem({ title: item.title, type: 'agenda' })}
-                        >
-                          Daftar via WA
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
+                        <h3 className="text-2xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+                          {item.title}
+                        </h3>
+                        <p className="text-slate-600 mt-3 text-sm leading-relaxed line-clamp-2">
+                          {item.description}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs font-heading font-semibold text-slate-500 mt-6 pt-6 border-t border-slate-100">
+                          <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-sky-600" /> {item.date}</div>
+                          <div className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-sky-600" /> {item.time} WIB</div>
+                          <div className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-sky-600" /> {item.location}</div>
+                        </div>
+                        <div className="mt-6 grid grid-cols-2 gap-3" onClick={(e) => e.stopPropagation()}>
+                          <Button 
+                            variant="primary" 
+                            className="!px-3 !py-2.5 text-xs"
+                            onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
+                          >
+                            Lihat Detail Agenda
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            className="!px-3 !py-2.5 text-xs"
+                            onClick={() => setRegisterItem({ title: item.title, type: 'agenda' })}
+                          >
+                            Daftar via WA
+                          </Button>
+                        </div>
+                      </Card>
+                    ))
+                  )}
                 </div>
               </div>
             </section>
@@ -1839,53 +1850,61 @@ export default function App() {
               title="Kalender Agenda & Kegiatan" 
               subtitle="Temukan ruang kolaborasi, pameran visual, dan lingkaran diskusi berkala kami di Muncar." 
             />
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {agendas.map((item) => (
-                <Card 
-                  key={item.id} 
-                  className="flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-                  onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
-                >
-                  <div>
-                    <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-5 bg-slate-100 relative">
-                      <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute top-3 left-3">
-                        <Badge variant="orange">{item.category}</Badge>
+            {agendas.length === 0 ? (
+              <div className="py-20 text-center bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+                <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h4 className="text-lg font-heading font-bold text-slate-700">Belum Ada Agenda Terjadwal</h4>
+                <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">Nantikan informasi lokakarya, temu wicara, pameran, dan ruang dialog berikutnya dari Punel Art Communication.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {agendas.map((item) => (
+                  <Card 
+                    key={item.id} 
+                    className="flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                    onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
+                  >
+                    <div>
+                      <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-5 bg-slate-100 relative">
+                        <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute top-3 left-3">
+                          <Badge variant="orange">{item.category}</Badge>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+                        {item.title}
+                      </h3>
+                      <p className="text-slate-600 mt-2 text-sm leading-relaxed line-clamp-3">
+                        {item.description}
+                      </p>
+                    </div>
+                    <div>
+                      <div className="space-y-1 text-xs font-heading font-semibold text-slate-500 my-6 pt-4 border-t border-slate-100">
+                        <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-sky-600" /> {item.date}</div>
+                        <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-sky-600" /> {item.time} WIB</div>
+                        <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-sky-600" /> {item.location}</div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3" onClick={(e) => e.stopPropagation()}>
+                        <Button 
+                          variant="primary" 
+                          className="!px-3 !py-2.5 text-xs"
+                          onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
+                        >
+                          Detail Lengkap
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="!px-3 !py-2.5 text-xs"
+                          onClick={() => setRegisterItem({ title: item.title, type: 'agenda' })}
+                        >
+                          Daftar Hadir
+                        </Button>
                       </div>
                     </div>
-                    <h3 className="text-xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-slate-600 mt-2 text-sm leading-relaxed line-clamp-3">
-                      {item.description}
-                    </p>
-                  </div>
-                  <div>
-                    <div className="space-y-1 text-xs font-heading font-semibold text-slate-500 my-6 pt-4 border-t border-slate-100">
-                      <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-sky-600" /> {item.date}</div>
-                      <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-sky-600" /> {item.time} WIB</div>
-                      <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-sky-600" /> {item.location}</div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3" onClick={(e) => e.stopPropagation()}>
-                      <Button 
-                        variant="primary" 
-                        className="!px-3 !py-2.5 text-xs"
-                        onClick={() => navigate(`/agenda/${item.slug || slugify(item.title)}`)}
-                      >
-                        Detail Lengkap
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="!px-3 !py-2.5 text-xs"
-                        onClick={() => setRegisterItem({ title: item.title, type: 'agenda' })}
-                      >
-                        Daftar Hadir
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -2011,37 +2030,45 @@ export default function App() {
               title="Jurnal, Esai & Catatan Lapangan" 
               subtitle="Hasil pengamatan etnografi, rekaman lisan nelayan, dan catatan kritis kolektif Punel Art Communication." 
             />
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.map((art) => (
-                <Card 
-                  key={art.id} 
-                  onClick={() => navigate(`/artikel/${art.slug || slugify(art.title)}`)}
-                  className="flex flex-col justify-between group cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                >
-                  <div>
-                    <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-5 bg-slate-100 relative">
-                      <img src={art.image} alt={art.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute top-3 left-3">
-                        <Badge variant="sky">{art.category}</Badge>
+            {articles.length === 0 ? (
+              <div className="py-20 text-center bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+                <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h4 className="text-lg font-heading font-bold text-slate-700">Belum Ada Catatan atau Artikel</h4>
+                <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">Jurnal, esai etnografi, dan catatan lapangan baru akan segera dipublikasikan di sini.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {articles.map((art) => (
+                  <Card 
+                    key={art.id} 
+                    onClick={() => navigate(`/artikel/${art.slug || slugify(art.title)}`)}
+                    className="flex flex-col justify-between group cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  >
+                    <div>
+                      <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-5 bg-slate-100 relative">
+                        <img src={art.image} alt={art.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute top-3 left-3">
+                          <Badge variant="sky">{art.category}</Badge>
+                        </div>
                       </div>
+                      <div className="text-xs font-heading font-semibold text-slate-400 mb-2">
+                        {art.date} • {art.author}
+                      </div>
+                      <h3 className="text-xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors leading-snug">
+                        {art.title}
+                      </h3>
+                      <p className="text-slate-600 mt-2 text-sm leading-relaxed line-clamp-3">
+                        {art.summary}
+                      </p>
                     </div>
-                    <div className="text-xs font-heading font-semibold text-slate-400 mb-2">
-                      {art.date} • {art.author}
+                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-heading font-bold text-sky-600">
+                      <span>Baca Arsip</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
-                    <h3 className="text-xl font-heading font-bold text-slate-900 group-hover:text-sky-600 transition-colors leading-snug">
-                      {art.title}
-                    </h3>
-                    <p className="text-slate-600 mt-2 text-sm leading-relaxed line-clamp-3">
-                      {art.summary}
-                    </p>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-heading font-bold text-sky-600">
-                    <span>Baca Arsip</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
