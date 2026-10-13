@@ -98,44 +98,49 @@ CREATE POLICY "Publik dapat membaca pengaturan" ON public.punel_settings
     FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Admin dapat mengelola pengaturan" ON public.punel_settings;
-CREATE POLICY "Admin dapat mengelola pengaturan" ON public.punel_settings
-    FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin dapat memperbarui pengaturan" ON public.punel_settings;
+CREATE POLICY "Admin dapat memperbarui pengaturan" ON public.punel_settings
+    FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
 
--- 2. Kebijakan punel_agenda
+-- 2. Kebijakan punel_agenda (Append-Only: Hanya Tambah & Baca, Larang Hapus)
 DROP POLICY IF EXISTS "Publik dapat melihat agenda" ON public.punel_agenda;
 CREATE POLICY "Publik dapat melihat agenda" ON public.punel_agenda
     FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Admin dapat mengelola agenda" ON public.punel_agenda;
-CREATE POLICY "Admin dapat mengelola agenda" ON public.punel_agenda
-    FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin dapat menambahkan agenda" ON public.punel_agenda;
+CREATE POLICY "Admin dapat menambahkan agenda" ON public.punel_agenda
+    FOR INSERT TO authenticated WITH CHECK (true);
 
--- 3. Kebijakan punel_articles
+-- 3. Kebijakan punel_articles (Append-Only: Hanya Tambah & Baca, Larang Hapus)
 DROP POLICY IF EXISTS "Publik dapat membaca artikel" ON public.punel_articles;
 CREATE POLICY "Publik dapat membaca artikel" ON public.punel_articles
     FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Admin dapat mengelola artikel" ON public.punel_articles;
-CREATE POLICY "Admin dapat mengelola artikel" ON public.punel_articles
-    FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin dapat menambahkan artikel" ON public.punel_articles;
+CREATE POLICY "Admin dapat menambahkan artikel" ON public.punel_articles
+    FOR INSERT TO authenticated WITH CHECK (true);
 
--- 4. Kebijakan punel_archives (PDF Documents)
+-- 4. Kebijakan punel_archives (Append-Only: Hanya Tambah & Baca, Larang Hapus)
 DROP POLICY IF EXISTS "Publik dapat melihat & membaca arsip PDF" ON public.punel_archives;
 CREATE POLICY "Publik dapat melihat & membaca arsip PDF" ON public.punel_archives
     FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Admin dapat mengelola arsip PDF" ON public.punel_archives;
-CREATE POLICY "Admin dapat mengelola arsip PDF" ON public.punel_archives
-    FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin dapat menambahkan arsip PDF" ON public.punel_archives;
+CREATE POLICY "Admin dapat menambahkan arsip PDF" ON public.punel_archives
+    FOR INSERT TO authenticated WITH CHECK (true);
 
--- 5. Kebijakan punel_team
+-- 5. Kebijakan punel_team (Append-Only: Hanya Baca & Tambah, Data Historis Terkunci)
 DROP POLICY IF EXISTS "Publik dapat melihat tim" ON public.punel_team;
 CREATE POLICY "Publik dapat melihat tim" ON public.punel_team
     FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Admin dapat mengelola data tim" ON public.punel_team;
-CREATE POLICY "Admin dapat mengelola data tim" ON public.punel_team
-    FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin dapat menambahkan data tim" ON public.punel_team;
+CREATE POLICY "Admin dapat menambahkan data tim" ON public.punel_team
+    FOR INSERT TO authenticated WITH CHECK (true);
 
 -- 6. Kebijakan punel_registrations
 DROP POLICY IF EXISTS "Publik dapat mendaftarkan diri ke agenda" ON public.punel_registrations;
@@ -144,7 +149,7 @@ CREATE POLICY "Publik dapat mendaftarkan diri ke agenda" ON public.punel_registr
 
 DROP POLICY IF EXISTS "Admin dapat melihat data pendaftar" ON public.punel_registrations;
 CREATE POLICY "Admin dapat melihat data pendaftar" ON public.punel_registrations
-    FOR ALL TO authenticated USING (true) WITH CHECK (true);
+    FOR SELECT TO authenticated USING (true);
 
 -- ==============================================================================
 -- PENYIAPAN STORAGE BUCKET UNTUK FILE PDF & GAMBAR

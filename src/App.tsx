@@ -335,10 +335,11 @@ export default function App() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // ADMIN DASHBOARD FORM STATE
+  // ADMIN DASHBOARD FORM STATE (APPEND-ONLY ARCHIVAL)
   const [adminType, setAdminType] = useState<'archive' | 'agenda' | 'article'>('archive');
   const [adminFormData, setAdminFormData] = useState<any>({});
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
+  const [isAdminSubmitting, setIsAdminSubmitting] = useState(false);
 
   // --- SISTEM NAVIGASI & SCROLL-TO-TOP TERPUSAT ---
   const navigate = (path: string, options?: { replace?: boolean; hash?: string }) => {
@@ -606,10 +607,11 @@ export default function App() {
     }, 1200);
   };
 
-  // --- HANDLER ADMIN TERBITKAN KONTEN ---
+  // --- HANDLER ADMIN TERBITKAN KONTEN (APPEND-ONLY ARCHIVAL) ---
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminMessage(null);
+    setIsAdminSubmitting(true);
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -626,8 +628,25 @@ export default function App() {
             pdfUrl: adminFormData.pdfUrl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
             allowDownload: true
           };
-          const { error } = await supabase.from('punel_archives').insert([payload]);
+          const { data, error } = await supabase.from('punel_archives').insert([payload]).select();
           if (error) throw error;
+
+          const created = data && data[0] ? data[0] : payload;
+          const newDoc: ArchiveDocument = {
+            id: created.id || String(Date.now()),
+            title: created.title,
+            author: created.author || 'Tim Punel',
+            year: created.year || '2026',
+            category: created.category || 'Arsip Digital',
+            pages: created.pages || 'Dokumen PDF',
+            fileSize: created.fileSize || created.filesize || 'Unduh PDF',
+            description: created.description || '',
+            coverUrl: created.coverUrl || created.coverurl || payload.coverUrl,
+            pdfUrl: created.pdfUrl || created.pdfurl || payload.pdfUrl,
+            allowDownload: true
+          };
+          setArchives(prev => [newDoc, ...prev]);
+          setAdminMessage('✓ Berhasil! Dokumen PDF baru telah ditambahkan ke arsip permanen Supabase.');
         } else if (adminType === 'agenda') {
           const payload = {
             title: adminFormData.title,
@@ -635,26 +654,62 @@ export default function App() {
             time: adminFormData.time || '15:00',
             location: adminFormData.location,
             category: adminFormData.category || 'Diskusi',
-            description: adminFormData.description,
-            posterUrl: adminFormData.image
+            description: adminFormData.description || '',
+            posterUrl: adminFormData.image || adminFormData.coverUrl || 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800'
           };
-          const { error } = await supabase.from('punel_agenda').insert([payload]);
+          const { data, error } = await supabase.from('punel_agenda').insert([payload]).select();
           if (error) throw error;
+
+          const created = data && data[0] ? data[0] : payload;
+          const newAg: Agenda = {
+            id: created.id || String(Date.now()),
+            slug: slugify(created.title || 'Agenda Baru'),
+            title: created.title,
+            date: created.date,
+            time: created.time || '15:00',
+            location: created.location,
+            status: 'upcoming',
+            category: created.category || 'Diskusi',
+            description: created.description || '',
+            longDescription: created.description || '',
+            organizer: 'Punel Art Communication',
+            image: created.posterUrl || created.posterurl || payload.posterUrl,
+            isOpenRegistration: true
+          };
+          setAgendas(prev => [newAg, ...prev]);
+          setAdminMessage('✓ Berhasil! Agenda baru telah ditambahkan ke kalender kegiatan Supabase.');
         } else {
           const payload = {
             title: adminFormData.title,
-            author: adminFormData.author,
-            category: adminFormData.category,
+            author: adminFormData.author || 'Tim Punel',
+            category: adminFormData.category || 'Catatan Budaya',
             summary: adminFormData.summary || adminFormData.content?.slice(0, 140) + '...',
-            content: adminFormData.content,
-            imageUrl: adminFormData.image
+            content: adminFormData.content || '',
+            imageUrl: adminFormData.image || adminFormData.coverUrl || 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800'
           };
-          const { error } = await supabase.from('punel_articles').insert([payload]);
+          const { data, error } = await supabase.from('punel_articles').insert([payload]).select();
           if (error) throw error;
+
+          const created = data && data[0] ? data[0] : payload;
+          const newArticle: Article = {
+            id: created.id || String(Date.now()),
+            slug: slugify(created.title || 'Artikel'),
+            title: created.title,
+            author: created.author || 'Tim Punel',
+            date: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+            category: created.category || 'Catatan Budaya',
+            summary: created.summary || '',
+            content: created.content || '',
+            image: created.imageUrl || created.imageurl || payload.imageUrl
+          };
+          setArticles(prev => [newArticle, ...prev]);
+          setAdminMessage('✓ Berhasil! Artikel baru telah diterbitkan ke indeks jurnal Supabase.');
         }
-        setAdminMessage('Konten berhasil diterbitkan ke database Supabase!');
+        setAdminFormData({});
       } catch (err: any) {
         setAdminMessage(`Gagal menerbitkan ke Supabase: ${err.message}`);
+      } finally {
+        setIsAdminSubmitting(false);
       }
     } else {
       if (adminType === 'archive') {
@@ -685,16 +740,28 @@ export default function App() {
           description: adminFormData.description || '',
           longDescription: adminFormData.description || '',
           organizer: 'Punel Art Communication',
-          image: adminFormData.image || 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800',
+          image: adminFormData.image || adminFormData.coverUrl || 'https://images.unsplash.com/photo-1599827552599-eda794b159f8?auto=format&fit=crop&q=80&w=800',
           isOpenRegistration: true
         };
         setAgendas(prev => [newAg, ...prev]);
       } else {
-        setArticles(prev => [{ ...adminFormData, id: String(Date.now()), slug: slugify(adminFormData.title || 'Artikel') }, ...prev]);
+        const newArt: Article = {
+          id: String(Date.now()),
+          slug: slugify(adminFormData.title || 'Artikel'),
+          title: adminFormData.title || 'Artikel Baru',
+          author: adminFormData.author || 'Tim Punel',
+          date: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+          category: adminFormData.category || 'Catatan Budaya',
+          summary: adminFormData.summary || adminFormData.content?.slice(0, 140) + '...',
+          content: adminFormData.content || '',
+          image: adminFormData.image || adminFormData.coverUrl || 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800'
+        };
+        setArticles(prev => [newArt, ...prev]);
       }
-      setAdminMessage('Berhasil ditambahkan ke daftar pratinjau lokal (Mock Mode)!');
+      setAdminMessage('✓ Berhasil ditambahkan ke daftar arsip lokal (Mock Mode)!');
+      setIsAdminSubmitting(false);
+      setAdminFormData({});
     }
-    setAdminFormData({});
   };
 
   // --- PARSER RUTE DINAMIS DARI URL PATHNAME ---
@@ -1216,6 +1283,26 @@ export default function App() {
                   </Button>
                 </div>
 
+                {/* BANNER KEAMANAN & PRINSIP ARSIP ABADI (APPEND-ONLY) */}
+                <div className="mb-8 p-5 rounded-2xl bg-amber-50/90 border border-amber-200/80 flex items-start gap-4 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-heading font-extrabold text-amber-900 uppercase tracking-wider">
+                        Prinsip Pelestarian Arsip (Append-Only System)
+                      </h4>
+                      <span className="text-[10px] font-heading font-bold px-2 py-0.5 rounded-full bg-amber-200/70 text-amber-900 border border-amber-300">
+                        Larang Hapus
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-800/90 font-sans mt-1 leading-relaxed">
+                      Sesuai etika dokumentasi kebudayaan Punel Art Communication, portal administrator <strong>hanya dapat menambahkan arsip dan agenda baru</strong>. Seluruh data historis yang telah terbit terkunci secara permanen di database untuk menjamin keaslian dan proteksi catatan pesisir.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="flex flex-wrap gap-3 mb-8">
                   {(['archive', 'agenda', 'article'] as const).map((type) => (
                     <button
@@ -1233,8 +1320,9 @@ export default function App() {
                 </div>
 
                 {adminMessage && (
-                  <div className="mb-6 p-4 rounded-2xl bg-sky-50 border border-sky-200 text-sky-800 text-sm font-heading font-semibold">
-                    {adminMessage}
+                  <div className="mb-6 p-4 rounded-2xl bg-sky-50 border border-sky-200 text-sky-800 text-sm font-heading font-semibold flex items-center gap-2">
+                    <Check className="w-4 h-4 text-sky-600 shrink-0" />
+                    <span>{adminMessage}</span>
                   </div>
                 )}
 
@@ -1416,11 +1504,134 @@ export default function App() {
                       />
                     </div>
 
-                    <Button type="submit" variant="primary" className="w-full">
-                      Terbitkan Arsip / Konten Baru
+                    <Button type="submit" variant="primary" className="w-full !py-3.5" disabled={isAdminSubmitting}>
+                      {isAdminSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Menerbitkan Konten ke Arsip...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-4 h-4" />
+                          <span>Terbitkan {adminType === 'archive' ? 'Dokumen PDF' : adminType === 'agenda' ? 'Agenda' : 'Artikel'} Baru</span>
+                        </>
+                      )}
                     </Button>
                   </form>
                 </Card>
+
+                {/* DAFTAR DOKUMENTASI TERBITAN (READ-ONLY ARCHIVE VIEWER) */}
+                <div className="mt-14 space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+                    <div>
+                      <h3 className="text-xl font-heading font-extrabold text-slate-900">
+                        Daftar {adminType === 'archive' ? 'Dokumen PDF Terbit' : adminType === 'agenda' ? 'Agenda Terjadwal' : 'Artikel & Jurnal Terbit'}
+                      </h3>
+                      <p className="text-xs text-slate-500 font-sans mt-0.5">
+                        Seluruh rekaman di bawah ini terkunci aman dan tersimpan permanen di arsip publik.
+                      </p>
+                    </div>
+                    <Badge variant="sky">
+                      <Lock className="w-3 h-3 inline mr-1" />
+                      Tersimpan Permanen (Larang Hapus)
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-3">
+                    {adminType === 'archive' && archives.map((item) => (
+                      <div key={item.id} className="bg-white rounded-2xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-slate-200 transition-all">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-heading font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">{item.category}</span>
+                              <span className="text-xs text-slate-400 font-sans">{item.year} • {item.pages}</span>
+                            </div>
+                            <h4 className="text-sm font-heading font-bold text-slate-900 truncate mt-0.5">{item.title}</h4>
+                            <p className="text-xs text-slate-400 truncate">Penulis: {item.author}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                          <Button 
+                            variant="outline" 
+                            className="!px-3 !py-1.5 text-xs" 
+                            onClick={() => setSelectedPdf(item)}
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            <span>Buka Dokumen</span>
+                          </Button>
+                          <span className="text-[11px] font-heading font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1 border border-emerald-100">
+                            <Check className="w-3 h-3" /> Terarsip
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {adminType === 'agenda' && agendas.map((item) => (
+                      <div key={item.id} className="bg-white rounded-2xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-slate-200 transition-all">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                            <Calendar className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-heading font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">{item.category}</span>
+                              <span className="text-xs text-slate-400 font-sans">{item.date} • {item.time} WIB</span>
+                            </div>
+                            <h4 className="text-sm font-heading font-bold text-slate-900 truncate mt-0.5">{item.title}</h4>
+                            <p className="text-xs text-slate-400 truncate"><MapPin className="w-3 h-3 inline mr-1" />{item.location}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                          <Button 
+                            variant="outline" 
+                            className="!px-3 !py-1.5 text-xs" 
+                            onClick={() => navigate(`/agenda/${item.slug || item.id}`)}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Buka Laman</span>
+                          </Button>
+                          <span className="text-[11px] font-heading font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1 border border-emerald-100">
+                            <Check className="w-3 h-3" /> Terbit
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {adminType === 'article' && articles.map((item) => (
+                      <div key={item.id} className="bg-white rounded-2xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-slate-200 transition-all">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                            <BookOpen className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-heading font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">{item.category}</span>
+                              <span className="text-xs text-slate-400 font-sans">{item.date}</span>
+                            </div>
+                            <h4 className="text-sm font-heading font-bold text-slate-900 truncate mt-0.5">{item.title}</h4>
+                            <p className="text-xs text-slate-400 truncate">Penulis: {item.author}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                          <Button 
+                            variant="outline" 
+                            className="!px-3 !py-1.5 text-xs" 
+                            onClick={() => navigate(`/artikel/${item.slug || item.id}`)}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Buka Laman</span>
+                          </Button>
+                          <span className="text-[11px] font-heading font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1 border border-emerald-100">
+                            <Check className="w-3 h-3" /> Terbit
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
