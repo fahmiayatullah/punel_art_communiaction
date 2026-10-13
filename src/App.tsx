@@ -1125,7 +1125,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="pt-2">
+                  <div className="pt-2 space-y-3">
                     <Button type="submit" variant="primary" className="w-full !py-3.5" disabled={isLoggingIn}>
                       {isLoggingIn ? (
                         <>
@@ -1138,6 +1138,35 @@ export default function App() {
                           <span>Masuk ke Dashboard</span>
                         </>
                       )}
+                    </Button>
+
+                    <div className="relative my-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-slate-200"></div>
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-white px-3 text-slate-400 font-heading font-bold text-[10px] tracking-wider">
+                          Opsi Pengujian Cepat
+                        </span>
+                      </div>
+                    </div>
+
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-full !py-3 text-xs !border-slate-200 text-slate-700 hover:!border-sky-500 hover:!bg-sky-50 cursor-pointer"
+                      onClick={() => {
+                        setSession({
+                          user: {
+                            email: 'admin.sementara@punelart.org',
+                            user_metadata: { name: 'Admin Sementara' }
+                          }
+                        });
+                        navigate('/admin');
+                      }}
+                    >
+                      <span>Masuk sebagai Admin Sementara (Dev Mode)</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Button>
                   </div>
 

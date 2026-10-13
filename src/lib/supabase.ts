@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zwfdowendkxrzottdhys.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZmRvd2VuZGt4cnpvdHRkaHlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4OTkzNTIsImV4cCI6MjEwNzQ3NTM1Mn0.1qbbyZJrRGiV2ArrGlA_TyCy2qH0IhLZ3gulNqXq4_o';
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
@@ -9,8 +9,5 @@ export const isSupabaseConfigured = Boolean(
   !supabaseUrl.includes('YOUR_PROJECT_ID')
 );
 
-// Fallback placeholder credentials to prevent app crash when .env is not yet populated
-export const supabase = createClient(
-  isSupabaseConfigured ? supabaseUrl : 'https://placeholder-project.supabase.co',
-  isSupabaseConfigured ? supabaseAnonKey : 'placeholder-anon-key'
-);
+// Inisialisasi klien Supabase resmi
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
