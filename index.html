@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Punel Art Communiaction — Seni . Komunikasi . Aksi</title>
-    <meta name="description" content="Kolektif kebudayaan independen pesisir Muncar, Banyuwangi. Merawat ingatan, mendokumentasikan tradisi, dan aksi kebudayaan." />
-    <!-- Google Fonts -->
+    <title>Punel Art Communication — Seni . Komunikasi . Aksi</title>
+    <meta name="description" content="Kolektif seni dan kebudayaan pesisir Muncar, Banyuwangi. Merawat ingatan, mendokumentasikan tradisi, dan aksi kebudayaan." />
+    <!-- Google Fonts: Plus Jakarta Sans (Headings) & DM Sans (Body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -17,15 +17,25 @@
         theme: {
           extend: {
             fontFamily: {
-              serif: ['"Playfair Display"', 'Georgia', 'serif'],
-              sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              heading: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              sky: {
+                600: '#0284c7',
+                700: '#0369a1',
+              },
+              orange: {
+                500: '#f97316',
+                600: '#ea580c',
+              }
             }
           }
         }
       }
     </script>
   </head>
-  <body>
+  <body class="bg-slate-50 text-slate-800 font-sans antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
