@@ -753,8 +753,12 @@ export default function App() {
             onClick={() => navigate('/')} 
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-11 h-11 rounded-2xl bg-sky-600 flex items-center justify-center text-white font-heading font-extrabold text-xl shadow-md group-hover:bg-sky-700 transition-colors">
-              P
+            <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-md border border-slate-800 bg-black flex items-center justify-center shrink-0 group-hover:scale-105 transition-all duration-200">
+              <img 
+                src="/logo.jpg" 
+                alt="Logo Punel Art Communication" 
+                className="w-full h-full object-cover" 
+              />
             </div>
             <div>
               <span className="font-heading font-extrabold text-xl tracking-tight text-slate-900 group-hover:text-sky-600 transition-colors block">
@@ -1085,8 +1089,12 @@ export default function App() {
           <div className="py-24 max-w-md mx-auto px-6">
             <div className="bg-white rounded-3xl p-8 md:p-10 shadow-xl border border-slate-100">
               <div className="text-center mb-8">
-                <div className="w-14 h-14 rounded-2xl bg-sky-600 flex items-center justify-center text-white font-heading font-extrabold text-2xl shadow-lg shadow-sky-500/30 mx-auto mb-4">
-                  P
+                <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg border border-slate-800 bg-black flex items-center justify-center mx-auto mb-4">
+                  <img 
+                    src="/logo.jpg" 
+                    alt="Logo Punel Art Communication" 
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
                 <h2 className="text-2xl font-heading font-extrabold text-slate-900">
                   Portal Administrator
@@ -2365,8 +2373,12 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-12 gap-12">
           <div className="md:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-sky-600 flex items-center justify-center text-white font-heading font-extrabold text-lg">
-                P
+              <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-md border border-slate-700 bg-black flex items-center justify-center shrink-0">
+                <img 
+                  src="/logo.jpg" 
+                  alt="Logo Punel Art Communication" 
+                  className="w-full h-full object-cover" 
+                />
               </div>
               <span className="font-heading font-extrabold text-xl tracking-tight text-white">
                 Punel Art Communication
